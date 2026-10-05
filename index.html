@@ -3,23 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Yanhh3D </title>
+    <title>Yanhh3D</title>
     
     <!-- 1. CHỐNG PHÁT HIỆN BOT / AUTOMATION (SPOOFING) -->
     <script>
         (function() {
             try {
-                Object.defineProperty(navigator, 'webdriver', {
-                    get: () => undefined,
-                });
-
-                Object.defineProperty(navigator, 'plugins', {
-                    get: () => [1, 2, 3, 4, 5],
-                });
-                
-                Object.defineProperty(navigator, 'languages', {
-                    get: () => ['vi-VN', 'vi', 'en-US', 'en'],
-                });
+                Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                Object.defineProperty(navigator, 'plugins', { get: () => [1, 2, 3, 4, 5] });
+                Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi', 'en-US', 'en'] });
 
                 if (!window.chrome) {
                     window.chrome = {
@@ -43,7 +35,7 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* 1. ẨN THANH CUỘN */
+        /* ẨN THANH CUỘN */
         html, body, .iframe-container, iframe {
             -ms-overflow-style: none; /* IE, Edge */
             scrollbar-width: none;    /* Firefox */
@@ -58,7 +50,7 @@
             height: 0 !important;
         }
 
-        /* 2. TỐI ƯU HIỆU NĂNG & GPU (FIX LAG) */
+        /* TỐI ƯU HIỆU NĂNG & GPU */
         html, body {
             width: 100%;
             height: 100%;
@@ -234,7 +226,7 @@
     </div>
 
     <div class="iframe-container" id="iframe-container">
-        <!-- Tích hợp sandbox chống popup + chặn quảng cáo nhảy tab -->
+        <!-- Tích hợp sandbox chống nhảy tab/popup và chống tự động redirect trang -->
         <iframe id="main-iframe" 
                 src="https://yanhh3d.kim/" 
                 title="Website" 
@@ -311,19 +303,31 @@
             }
         };
 
-        // CHẶN BẮT CÁC LỆNH MỞ CỬA SỔ QUẢNG CÁO TỪ TRANG CHA
+        // 1. CHẶN VĨNH VIỄN CÁC LỆNH MỞ POPUP/CỬA SỔ MỚI TỪ TRANG CHẢ
         window.open = function() {
             console.log('Đã chặn cửa sổ popup quảng cáo.');
             return null;
         };
 
-        // BỘ LỌC TỰ ĐỘNG XOÁ VÙNG QUẢNG CÁO TRONG IFRAME (CÙNG TÊN MIỀN / SAME-ORIGIN)
+        // 2. CHẶN PHÁT HÀNH/MỞ TAB MỚI THÔNG QUA CLICK LINK CÓ TARGET="_BLANK"
+        document.addEventListener('click', function(e) {
+            const target = e.target.closest('a');
+            if (target && target.target === '_blank') {
+                target.removeAttribute('target');
+            }
+        }, true);
+
+        // 3. BỘ LỌC TỰ ĐỘNG XOÁ VÙNG QUẢNG CÁO TRONG IFRAME (CÙNG TÊN MIỀN / SAME-ORIGIN)
         function cleanIframeAds() {
             try {
                 const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
                 if (!iframeDoc) return;
 
-                // Các Selector quảng cáo phổ biến
+                // Khóa window.open bên trong Same-Origin iframe
+                if (iframe.contentWindow) {
+                    iframe.contentWindow.open = function() { return null; };
+                }
+
                 const adSelectors = [
                     '[id*="pop"]', '[class*="pop"]',
                     '[id*="ad"]', '[class*="ad"]',
@@ -337,19 +341,17 @@
                 adSelectors.forEach(selector => {
                     const elements = iframeDoc.querySelectorAll(selector);
                     elements.forEach(el => {
-                        // Tránh xóa nhầm khung iframe chính hoặc các thành phần giao diện quan trọng
                         if (el !== iframe && !el.contains(iframe)) {
                             el.remove();
                         }
                     });
                 });
             } catch (e) {
-                // Trang web khác tên miền (Cross-origin) sẽ bị chặn truy cập DOM theo chính sách bảo mật của trình duyệt.
-                // Đối với trường hợp Cross-origin, thuộc tính sandbox đã đảm nhận vai trò chặn popup/nhảy tab.
+                // Cross-origin iframe được sandbox bảo vệ hoàn toàn khỏi việc mở tab/popup mới
             }
         }
 
-        // Tự động quét và dọn dẹp quảng cáo liên tục
+        // Theo dõi dọn dẹp liên tục
         iframe.addEventListener('load', () => {
             cleanIframeAds();
             try {
@@ -359,8 +361,13 @@
             } catch (e) {}
         });
 
+        // Giữ màn hình luôn sáng (Wake Lock)
         let wakeLock = null;
-        const reqWake = async () => { if ('wakeLock' in navigator) try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} };
+        const reqWake = async () => { 
+            if ('wakeLock' in navigator) {
+                try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} 
+            }
+        };
         document.addEventListener('DOMContentLoaded', reqWake);
         document.onclick = () => { if (!wakeLock) reqWake(); };
         document.onvisibilitychange = () => { if (document.visibilityState === 'visible') reqWake(); };
