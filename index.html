@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Yanhh3D - Ultimate Speed & Smooth Video</title>
+    
+    <!-- 1. CHỐNG PHÁT HIỆN BOT / AUTOMATION (SPOOFING) -->
+    <script>
+        (function() {
+            try {
+                // Xóa cờ navigator.webdriver (Dấu hiệu bot số 1)
+                Object.defineProperty(navigator, 'webdriver', {
+                    get: () => undefined,
+                });
+
+                // Giả lập plugins và languages giống trình duyệt người dùng thực
+                Object.defineProperty(navigator, 'plugins', {
+                    get: () => [1, 2, 3, 4, 5],
+                });
+                
+                Object.defineProperty(navigator, 'languages', {
+                    get: () => ['vi-VN', 'vi', 'en-US', 'en'],
+                });
+
+                // Bổ sung chrome object nếu thiếu
+                if (!window.chrome) {
+                    window.chrome = {
+                        runtime: {},
+                        loadTimes: function() {},
+                        csi: function() {},
+                        app: {}
+                    };
+                }
+            } catch (e) {}
+        })();
+    </script>
+
+    <link rel="preconnect" href="https://yanhh3d.kim" crossorigin>
+    <link rel="dns-prefetch" href="https://yanhh3d.kim">
+    <style>
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 1. ẨN THANH CUỘN */
+        html, body, .iframe-container, iframe {
+            -ms-overflow-style: none; /* IE, Edge */
+            scrollbar-width: none;    /* Firefox */
+        }
+        
+        html::-webkit-scrollbar, 
+        body::-webkit-scrollbar, 
+        .iframe-container::-webkit-scrollbar, 
+        iframe::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        /* 2. TỐI ƯU HIỆU NĂNG & GPU (FIX LAG) */
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            -webkit-user-select: none;
+            user-select: none;
+            -webkit-transform: translate3d(0,0,0);
+            transform: translate3d(0,0,0);
+            scroll-behavior: smooth;
+        }
+
+        .url-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 48px;
+            background: #121212;
+            display: flex;
+            align-items: center;
+            padding: 0 8px;
+            gap: 6px;
+            z-index: 9999;
+            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            will-change: transform;
+            transform: translateZ(0);
+        }
+
+        .url-bar img {
+            height: 28px;
+            width: 28px;
+            border-radius: 8px;
+            object-fit: contain;
+            flex-shrink: 0;
+            cursor: pointer;
+        }
+
+        /* Khung nhập URL có tiền tố https:// cố định */
+        .input-wrapper {
+            flex: 1;
+            height: 34px;
+            border-radius: 17px;
+            border: 1px solid #2a2a2a;
+            background: #1e1e1e;
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            min-width: 0;
+            transition: border-color .2s, background .2s;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: #007aff;
+            background: #181818;
+        }
+
+        .prefix-text {
+            color: #8e8e93;
+            font-size: 13px;
+            font-weight: 500;
+            user-select: none;
+            -webkit-user-select: none;
+            padding-right: 2px;
+            white-space: nowrap;
+        }
+
+        .input-wrapper input {
+            flex: 1;
+            height: 100%;
+            border: none;
+            background: transparent;
+            color: #fff;
+            font-size: 13px;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+            min-width: 0;
+            padding: 0;
+        }
+
+        .btn-icon {
+            height: 34px;
+            width: 34px;
+            border-radius: 17px;
+            border: none;
+            background: #2a2a2a;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: transform .1s, opacity .1s, background .2s;
+        }
+
+        .btn-icon:active {
+            transform: scale(.92);
+            opacity: .8;
+        }
+
+        .btn-text.set-btn {
+            height: 34px;
+            padding: 0 10px;
+            border-radius: 17px;
+            border: none;
+            background: #34c759;
+            color: #fff;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            white-space: nowrap;
+            transition: transform .1s, opacity .1s, background .2s;
+        }
+
+        .btn-text.set-btn:active {
+            transform: scale(.92);
+            opacity: .8;
+        }
+
+        .btn-icon.go-btn {
+            background: #007aff;
+        }
+
+        .btn-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            pointer-events: none;
+        }
+
+        .iframe-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            padding-top: 48px;
+            background: #000;
+            overflow: auto;
+            -webkit-overflow-scrolling: touch;
+            will-change: scroll-position;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            will-change: transform;
+            transform: translateZ(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="url-bar" id="url-bar">
+        <img src="https://www.google.com/s2/favicons?domain=yanhh3d.kim&sz=64" alt="Logo" id="logo-btn" title="Chạm để về trang gốc" loading="lazy">
+        
+        <div class="input-wrapper">
+            <span class="prefix-text">https://</span>
+            <input type="text" id="link-input" value="yanhh3d.kim/" placeholder="nhap-ten-mien.com" autocomplete="off" spellcheck="false">
+        </div>
+        
+        <button class="btn-text set-btn" id="set-btn" title="Lưu làm link mặc định (Set Web)">Set Web</button>
+
+        <button class="btn-icon go-btn" id="go-btn" title="Đi tới URL">
+            <svg viewBox="0 0 24 24"><path d="M3.4 20.4l17.45-7.48a1 1 0 0 0 0-1.84L3.4 3.6a1 1 0 0 0-1.39.91L2 9.12c0 .5.37.93.87.98L17 12 2.87 13.9c-.5.05-.87.48-.87.98l.01 4.61c0 .73.73 1.25 1.39.91z"/></svg>
+        </button>
+    </div>
+
+    <div class="iframe-container" id="iframe-container">
+        <!-- Đã bổ sung referrerPolicy và đầy đủ thuộc tính cho phép tương tác như trình duyệt thực -->
+        <iframe id="main-iframe" 
+                src="https://yanhh3d.kim/" 
+                title="Website" 
+                loading="eager" 
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen 
+                allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write; web-share; screen-wake-lock; camera; microphone; geolocation">
+        </iframe>
+    </div>
+
+    <script>
+        document.addEventListener('touchstart', function() {}, {passive: true});
+        document.addEventListener('touchmove', function() {}, {passive: true});
+
+        const HARDCODED_LINK = 'https://yanhh3d.kim/';
+        const $ = id => document.getElementById(id);
+        const input = $('link-input'), iframe =$('main-iframe');
+
+        function getCustomHome() {
+            return localStorage.getItem('custom_main_link') || HARDCODED_LINK;
+        }
+
+        function cleanUrlForInput(url) {
+            return url.replace(/^https?:\/\//i, '');
+        }
+
+        function loadHome() {
+            const homeUrl = getCustomHome();
+            input.value = cleanUrlForInput(homeUrl);
+            iframe.src = homeUrl;
+            updateLogo(homeUrl);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHome);
+
+        function updateLogo(url) {
+            try {
+                const domain = new URL(url).hostname;
+                $('logo-btn').src = `https://www.google.com/s2/favicons?domain=${domain}&sz=64`;
+            } catch (e) {
+                $('logo-btn').src = `https://www.google.com/s2/favicons?domain=yanhh3d.kim&sz=64`;
+            }
+        }
+
+        function navigate() {
+            let val = input.value.trim();
+            val = cleanUrlForInput(val);
+            if (!val) return;
+            
+            const fullUrl = 'https://' + val;
+            iframe.src = fullUrl;
+            updateLogo(fullUrl);
+        }
+
+        $('set-btn').onclick = () => {
+            let val = input.value.trim();
+            val = cleanUrlForInput(val);
+            if (!val) return;
+
+            const fullUrl = 'https://' + val;
+            localStorage.setItem('custom_main_link', fullUrl);
+            alert('Đã thiết lập link mặc định mới:\n' + fullUrl);
+            loadHome();
+        };
+
+        $('go-btn').onclick = navigate;
+        $('logo-btn').onclick = loadHome;
+
+        input.onkeypress = function(e) {
+            if (e.key === 'Enter') {
+                navigate();
+                this.blur();
+            }
+        };
+
+        let wakeLock = null;
+        const reqWake = async () => { if ('wakeLock' in navigator) try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} };
+        document.addEventListener('DOMContentLoaded', reqWake);
+        document.onclick = () => { if (!wakeLock) reqWake(); };
+        document.onvisibilitychange = () => { if (document.visibilityState === 'visible') reqWake(); };
+    </script>
+</body>
+</html>
