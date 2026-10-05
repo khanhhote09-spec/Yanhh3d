@@ -3,18 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Yanhh3D</title>
+    <title>Yanhh3D </title>
     
     <!-- 1. CHỐNG PHÁT HIỆN BOT / AUTOMATION (SPOOFING) -->
     <script>
         (function() {
             try {
-                // Xóa cờ navigator.webdriver (Dấu hiệu bot số 1)
                 Object.defineProperty(navigator, 'webdriver', {
                     get: () => undefined,
                 });
 
-                // Giả lập plugins và languages giống trình duyệt người dùng thực
                 Object.defineProperty(navigator, 'plugins', {
                     get: () => [1, 2, 3, 4, 5],
                 });
@@ -23,7 +21,6 @@
                     get: () => ['vi-VN', 'vi', 'en-US', 'en'],
                 });
 
-                // Bổ sung chrome object nếu thiếu
                 if (!window.chrome) {
                     window.chrome = {
                         runtime: {},
@@ -101,7 +98,6 @@
             cursor: pointer;
         }
 
-        /* Khung nhập URL có tiền tố https:// cố định */
         .input-wrapper {
             flex: 1;
             height: 34px;
@@ -238,12 +234,13 @@
     </div>
 
     <div class="iframe-container" id="iframe-container">
-        <!-- Đã bổ sung referrerPolicy và đầy đủ thuộc tính cho phép tương tác như trình duyệt thực -->
+        <!-- Tích hợp sandbox chống popup + chặn quảng cáo nhảy tab -->
         <iframe id="main-iframe" 
                 src="https://yanhh3d.kim/" 
                 title="Website" 
                 loading="eager" 
                 referrerpolicy="no-referrer-when-downgrade"
+                sandbox="allow-scripts allow-same-origin allow-forms allow-presentation"
                 allowfullscreen 
                 allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write; web-share; screen-wake-lock; camera; microphone; geolocation">
         </iframe>
@@ -313,6 +310,54 @@
                 this.blur();
             }
         };
+
+        // CHẶN BẮT CÁC LỆNH MỞ CỬA SỔ QUẢNG CÁO TỪ TRANG CHA
+        window.open = function() {
+            console.log('Đã chặn cửa sổ popup quảng cáo.');
+            return null;
+        };
+
+        // BỘ LỌC TỰ ĐỘNG XOÁ VÙNG QUẢNG CÁO TRONG IFRAME (CÙNG TÊN MIỀN / SAME-ORIGIN)
+        function cleanIframeAds() {
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                if (!iframeDoc) return;
+
+                // Các Selector quảng cáo phổ biến
+                const adSelectors = [
+                    '[id*="pop"]', '[class*="pop"]',
+                    '[id*="ad"]', '[class*="ad"]',
+                    '[id*="banner"]', '[class*="banner"]',
+                    'iframe[src*="doubleclick"]',
+                    'iframe[src*="googlesyndication"]',
+                    'div[style*="z-index: 99999"]',
+                    'div[style*="position: fixed"]'
+                ];
+
+                adSelectors.forEach(selector => {
+                    const elements = iframeDoc.querySelectorAll(selector);
+                    elements.forEach(el => {
+                        // Tránh xóa nhầm khung iframe chính hoặc các thành phần giao diện quan trọng
+                        if (el !== iframe && !el.contains(iframe)) {
+                            el.remove();
+                        }
+                    });
+                });
+            } catch (e) {
+                // Trang web khác tên miền (Cross-origin) sẽ bị chặn truy cập DOM theo chính sách bảo mật của trình duyệt.
+                // Đối với trường hợp Cross-origin, thuộc tính sandbox đã đảm nhận vai trò chặn popup/nhảy tab.
+            }
+        }
+
+        // Tự động quét và dọn dẹp quảng cáo liên tục
+        iframe.addEventListener('load', () => {
+            cleanIframeAds();
+            try {
+                const iframeDoc = iframe.contentDocument || iframe.contentWindow.document;
+                const observer = new MutationObserver(cleanIframeAds);
+                observer.observe(iframeDoc.body, { childList: true, subtree: true });
+            } catch (e) {}
+        });
 
         let wakeLock = null;
         const reqWake = async () => { if ('wakeLock' in navigator) try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} };
