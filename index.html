@@ -244,7 +244,11 @@
             input.blur();
         }
 
-        function openUrlBar() {
+        function openUrlBar(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
             urlBar.classList.add('active-mode');
             backdrop.classList.add('active');
             requestAnimationFrame(() => {
@@ -288,11 +292,18 @@
             }
         }
 
+        // Khắc phục triệt để sự kiện click/touch trên mobile cho thanh URL
         urlBar.addEventListener('click', function(e) {
             if (!urlBar.classList.contains('active-mode')) {
-                openUrlBar();
+                openUrlBar(e);
             }
         });
+        
+        urlBar.addEventListener('touchend', function(e) {
+            if (!urlBar.classList.contains('active-mode')) {
+                openUrlBar(e);
+            }
+        }, {passive: false});
 
         backdrop.addEventListener('touchstart', closeUrlBar, {passive: true});
         backdrop.addEventListener('click', closeUrlBar);
