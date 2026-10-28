@@ -122,18 +122,23 @@
             width: 34px;
             border-radius: 17px;
             border: none;
-            background: #ff9500;
+            background: #2a2a2a;
             color: #fff;
             cursor: pointer;
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
             flex-shrink: 0;
+            display: none;
             opacity: 0;
             pointer-events: none;
         }
 
-        .url-bar.active-mode .btn-icon.send-btn {
+        .btn-icon.set-btn {
+            background: #34c759;
+        }
+
+        .url-bar.active-mode .btn-icon.set-btn {
             display: flex;
             opacity: 1;
             pointer-events: auto;
@@ -173,7 +178,6 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
-        <!-- Đã cấu hình chỉ cho phép script, form và âm thanh (autoplay, encrypted-media), chặn các quyền khác -->
         <iframe id="main-iframe" src="https://yanhh3d.chat/" title="Website" loading="eager" 
             allow="autoplay; encrypted-media" 
             sandbox="allow-scripts allow-same-origin allow-forms">
@@ -182,8 +186,8 @@
 
     <div class="url-bar" id="url-bar" title="Bấm góc trên bên phải để nhập link">
         <input type="text" id="link-input" value="" placeholder="Nhập link hoặc từ khóa..." autocomplete="off" spellcheck="false">
-        <button class="btn-icon send-btn" id="send-btn" title="Gửi nội dung">
-            <svg viewBox="0 0 24 24"><path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z"/></svg>
+        <button class="btn-icon set-btn" id="set-btn" title="Lưu làm link mặc định (Set Web)">
+            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l2 2h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm-6-11h-2v3H8l4 4 4-4h-3v-3z"/></svg>
         </button>
     </div>
 
@@ -277,9 +281,20 @@
         backdrop.addEventListener('touchstart', closeUrlBar, {passive: true});
         backdrop.addEventListener('click', closeUrlBar);
 
-        $('send-btn').onclick = (e) => {
+        $('set-btn').onclick = (e) => {
             e.stopPropagation();
-            navigate();
+            let val = input.value.trim();
+            let fullUrl = val || stripProtocol(getCustomHome());
+
+            if (val && !/^https?:\/\//i.test(val) && val.includes('.')) {
+                fullUrl = 'https://' + val;
+            } else if (!/^https?:\/\//i.test(fullUrl)) {
+                fullUrl = 'https://' + fullUrl;
+            }
+
+            localStorage.setItem('custom_main_link', fullUrl);
+            // Đã xóa bỏ dòng alert() ở đây
+            loadHome();
         };
 
         input.onkeypress = function(e) {
