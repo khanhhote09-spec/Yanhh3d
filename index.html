@@ -254,11 +254,6 @@
             });
         }
 
-        // Cập nhật tiêu đề trang hiển thị nguyên văn link (giữ cả https://) hoặc từ khóa
-        function updatePageTitle(titleText) {
-            document.title = titleText ? titleText : 'YanHH3D';
-        }
-
         function setIframeSrc(url) {
             closeUrlBar();
             requestAnimationFrame(() => {
@@ -271,7 +266,6 @@
         function loadHome() {
             const homeUrl = getCustomHome();
             input.value = stripProtocol(homeUrl);
-            updatePageTitle(homeUrl); // Hiển thị đầy đủ link mặc định có cả https:// lên tiêu đề
             setIframeSrc(homeUrl);
         }
 
@@ -288,12 +282,10 @@
             if (/^https?:\/\//i.test(val) || (val.includes('.') && !val.includes(' '))) {
                 if (!/^https?:\/\//i.test(val)) targetUrl = 'https://' + val;
                 input.value = stripProtocol(targetUrl);
-                updatePageTitle(targetUrl); // Hiển thị đầy đủ link có cả https:// lên tiêu đề
                 setIframeSrc(targetUrl);
             } else {
                 targetUrl = `https://www.google.com/search?q=${encodeURIComponent(val)}&igu=1`;
                 input.value = val;
-                updatePageTitle(val); // Hiển thị từ khóa tìm kiếm lên tiêu đề
                 setIframeSrc(targetUrl);
             }
         }
