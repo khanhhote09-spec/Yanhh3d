@@ -4,6 +4,24 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YanHH3D</title>
+    
+    <!-- Favicon và Icon cho thiết bị di động -->
+    <link rel="icon" type="image/png" sizes="512x512" href="yanhh3d_icon.png">
+    <link rel="apple-touch-icon" sizes="512x512" href="yanhh3d_icon.png">
+
+    <!-- Thẻ Open Graph dùng khi chia sẻ link lên mạng xã hội (Facebook, Zalo, Telegram...) -->
+    <meta property="og:title" content="YanHH3D - Nền tảng Chat 3D">
+    <meta property="og:description" content="Trải nghiệm không gian 3D tương tác đỉnh cao tại yanhh3d.chat">
+    <meta property="og:image" content="https://yanhh3d.chat/yanhh3d_og_image.png">
+    <meta property="og:url" content="https://yanhh3d.chat">
+    <meta property="og:type" content="website">
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="YanHH3D">
+    <meta name="twitter:description" content="Trải nghiệm không gian 3D tương tác đỉnh cao">
+    <meta name="twitter:image" content="https://yanhh3d.chat/yanhh3d_og_image.png">
+
     <link rel="preconnect" href="https://yanhh3d.chat" crossorigin>
     <link rel="dns-prefetch" href="https://yanhh3d.chat">
     <style>
@@ -200,7 +218,7 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
-        <iframe id="main-iframe" src="https://yanhh3d.chat/" title="Website" loading="eager" 
+        <iframe id="main-iframe" src="https://yanhh3d.chat/" title="Website" loading="eager[span_1](start_span)"[span_1](end_span)
             allowfullscreen 
             webkitallowfullscreen 
             mozallowfullscreen
@@ -292,7 +310,6 @@
             }
         }
 
-        // Khắc phục triệt để sự kiện click/touch trên mobile cho thanh URL
         urlBar.addEventListener('click', function(e) {
             if (!urlBar.classList.contains('active-mode')) {
                 openUrlBar(e);
