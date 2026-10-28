@@ -4,24 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YanHH3D</title>
-    
-    <!-- Favicon và Icon cho thiết bị di động -->
-    <link rel="icon" type="image/png" sizes="512x512" href="yanhh3d_icon.png">
-    <link rel="apple-touch-icon" sizes="512x512" href="yanhh3d_icon.png">
-
-    <!-- Thẻ Open Graph dùng khi chia sẻ link lên mạng xã hội (Facebook, Zalo, Telegram...) -->
-    <meta property="og:title" content="YanHH3D - Nền tảng Chat 3D">
-    <meta property="og:description" content="Trải nghiệm không gian 3D tương tác đỉnh cao tại yanhh3d.chat">
-    <meta property="og:image" content="https://yanhh3d.chat/yanhh3d_og_image.png">
-    <meta property="og:url" content="https://yanhh3d.chat">
-    <meta property="og:type" content="website">
-
-    <!-- Twitter Card -->
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="YanHH3D">
-    <meta name="twitter:description" content="Trải nghiệm không gian 3D tương tác đỉnh cao">
-    <meta name="twitter:image" content="https://yanhh3d.chat/yanhh3d_og_image.png">
-
     <link rel="preconnect" href="https://yanhh3d.chat" crossorigin>
     <link rel="dns-prefetch" href="https://yanhh3d.chat">
     <style>
@@ -218,7 +200,7 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
-        <iframe id="main-iframe" src="https://yanhh3d.chat/" title="Website" loading="eager[span_1](start_span)"[span_1](end_span)
+        <iframe id="main-iframe" src="https://yanhh3d.chat/" title="Website" loading="eager" 
             allowfullscreen 
             webkitallowfullscreen 
             mozallowfullscreen
@@ -307,6 +289,72 @@
                 targetUrl = `https://www.google.com/search?q=${encodeURIComponent(val)}&igu=1`;
                 input.value = val;
                 setIframeSrc(targetUrl);
+            }
+        }
+
+        // Khắc phục triệt để sự kiện click/touch trên mobile cho thanh URL
+        urlBar.addEventListener('click', function(e) {
+            if (!urlBar.classList.contains('active-mode')) {
+                openUrlBar(e);
+            }
+        });
+        
+        urlBar.addEventListener('touchend', function(e) {
+            if (!urlBar.classList.contains('active-mode')) {
+                openUrlBar(e);
+            }
+        }, {passive: false});
+
+        backdrop.addEventListener('touchstart', closeUrlBar, {passive: true});
+        backdrop.addEventListener('click', closeUrlBar);
+
+        $('set-btn').onclick = (e) => {
+            e.stopPropagation();
+            let val = input.value.trim();
+            let fullUrl = val || stripProtocol(getCustomHome());
+
+            if (val && !/^https?:\/\//i.test(val) && val.includes('.')) {
+                fullUrl = 'https://' + val;
+            } else if (!/^https?:\/\//i.test(fullUrl)) {
+                fullUrl = 'https://' + fullUrl;
+            }
+
+            localStorage.setItem('custom_main_link', fullUrl);
+            alert('Đã thiết lập link mặc định mới:\n' + fullUrl);
+            loadHome();
+        };
+
+        $('send-btn').onclick = (e) => {
+            e.stopPropagation();
+            navigate();
+        };
+
+        input.onkeypress = function(e) {
+            if (e.key === 'Enter') {
+                navigate();
+            }
+        };
+
+        const handleFullscreenOrientation = () => {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+            if (isFullscreen && screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            } else if (!isFullscreen && screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenOrientation);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenOrientation);
+
+        let wakeLock = null;
+        const reqWake = async () => { if ('wakeLock' in navigator) try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} };
+        document.addEventListener('DOMContentLoaded', reqWake);
+        document.onclick = () => { if (!wakeLock) reqWake(); };
+    </script>
+</body>
+</html>
+              setIframeSrc(targetUrl);
             }
         }
 
