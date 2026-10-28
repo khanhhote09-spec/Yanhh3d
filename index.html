@@ -4,8 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YanHH3D</title>
-    <link rel="preconnect" href="https://yanhh3d.chat" crossorigin>
-    <link rel="dns-prefetch" href="https://yanhh3d.chat">
     <style>
         *, *::before, *::after {
             margin: 0;
@@ -292,7 +290,6 @@
             }
         }
 
-        // Khắc phục triệt để sự kiện click/touch trên mobile cho thanh URL
         urlBar.addEventListener('click', function(e) {
             if (!urlBar.classList.contains('active-mode')) {
                 openUrlBar(e);
