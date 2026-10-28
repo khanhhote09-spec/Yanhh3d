@@ -178,8 +178,11 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
-        <iframe id="main-iframe" src="https://yanhh3d.plus/" title="Website" loading="eager" 
-            allow="autoplay; encrypted-media" 
+        <iframe id="main-iframe" src="https://yanhh3d.plus" title="Website" loading="eager" 
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
+            allowfullscreen 
+            webkitallowfullscreen 
+            mozallowfullscreen
             sandbox="allow-scripts allow-same-origin allow-forms">
         </iframe>
     </div>
@@ -200,7 +203,7 @@
             }
         }, true);
 
-        const HARDCODED_LINK = 'https://yanhh3d.plus/';
+        const HARDCODED_LINK = 'https://yanhh3d.plus';
         const $ = id => document.getElementById(id);
         const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop');
 
@@ -293,7 +296,6 @@
             }
 
             localStorage.setItem('custom_main_link', fullUrl);
-            // Đã xóa bỏ dòng alert() ở đây
             loadHome();
         };
 
@@ -315,10 +317,34 @@
         document.addEventListener('fullscreenchange', handleFullscreenOrientation);
         document.addEventListener('webkitfullscreenchange', handleFullscreenOrientation);
 
+        // Giữ màn hình luôn sáng (Screen Wake Lock API) cải tiến tự động kích hoạt lại khi chuyển tab/quay lại
         let wakeLock = null;
-        const reqWake = async () => { if ('wakeLock' in navigator) try { wakeLock = await navigator.wakeLock.request('screen'); } catch {} };
-        document.addEventListener('DOMContentLoaded', reqWake);
-        document.onclick = () => { if (!wakeLock) reqWake(); };
+        const requestWakeLock = async () => {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        wakeLock = null;
+                    });
+                } catch (err) {
+                    console.log('Wake Lock error:', err);
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', requestWakeLock);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+        
+        // Kích hoạt lại Wake Lock khi người dùng tương tác chạm màn hình
+        ['click', 'touchstart'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (!wakeLock) requestWakeLock();
+            }, {passive: true});
+        });
     </script>
 </body>
 </html>
