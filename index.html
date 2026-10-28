@@ -198,12 +198,10 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
+        <!-- Đã cấu hình chỉ cho phép script, form và âm thanh (autoplay, encrypted-media), chặn các quyền khác -->
         <iframe id="main-iframe" src="https://yanhh3d.chat/" title="Website" loading="eager" 
-            allowfullscreen 
-            webkitallowfullscreen 
-            mozallowfullscreen
-            allow="autoplay; fullscreen; picture-in-picture; encrypted-media; gyroscope; accelerometer; clipboard-write; web-share; screen-wake-lock; orientation" 
-            sandbox="allow-scripts allow-same-origin allow-forms allow-presentation allow-orientation-lock allow-downloads allow-modals">
+            allow="autoplay; encrypted-media" 
+            sandbox="allow-scripts allow-same-origin allow-forms">
         </iframe>
     </div>
 
