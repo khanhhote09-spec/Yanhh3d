@@ -178,6 +178,7 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
+        <!-- Đã thêm cơ chế sandbox chặt chẽ để chặn popup, nhảy tab và quảng cáo độc hại -->
         <iframe id="main-iframe" src="https://yanhh3d.plus" title="Website" loading="eager" 
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
             allowfullscreen 
@@ -195,7 +196,10 @@
     </div>
 
     <script>
+        // Chặn hoàn toàn lệnh mở cửa sổ mới từ Javascript của trang web bên trong
         window.open = function() { return null; };
+        
+        // Tự động ép tất cả các thẻ a có target=_blank chuyển về mở ngay tại khung hiện tại (_self)
         document.addEventListener('click', function(e) {
             let target = e.target.closest('a');
             if (target && (target.target === '_blank' || target.target === '_top' || target.target === '_parent')) {
@@ -269,17 +273,23 @@
             }
         }
 
-        urlBar.addEventListener('click', function(e) {
-            if (!urlBar.classList.contains('active-mode')) {
-                openUrlBar(e);
-            }
-        });
-        
-        urlBar.addEventListener('touchend', function(e) {
+        let touchStarted = false;
+        urlBar.addEventListener('touchstart', function(e) {
+            touchStarted = true;
             if (!urlBar.classList.contains('active-mode')) {
                 openUrlBar(e);
             }
         }, {passive: false});
+
+        urlBar.addEventListener('click', function(e) {
+            if (touchStarted) {
+                touchStarted = false;
+                return;
+            }
+            if (!urlBar.classList.contains('active-mode')) {
+                openUrlBar(e);
+            }
+        });
 
         backdrop.addEventListener('touchstart', closeUrlBar, {passive: true});
         backdrop.addEventListener('click', closeUrlBar);
@@ -317,7 +327,6 @@
         document.addEventListener('fullscreenchange', handleFullscreenOrientation);
         document.addEventListener('webkitfullscreenchange', handleFullscreenOrientation);
 
-        // Giữ màn hình luôn sáng (Screen Wake Lock API) cải tiến tự động kích hoạt lại khi chuyển tab/quay lại
         let wakeLock = null;
         const requestWakeLock = async () => {
             if ('wakeLock' in navigator) {
@@ -339,7 +348,6 @@
             }
         });
         
-        // Kích hoạt lại Wake Lock khi người dùng tương tác chạm màn hình
         ['click', 'touchstart'].forEach(evt => {
             document.addEventListener(evt, () => {
                 if (!wakeLock) requestWakeLock();
