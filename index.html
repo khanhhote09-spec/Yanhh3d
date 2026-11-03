@@ -189,7 +189,7 @@
     </div>
 
     <div class="url-bar" id="url-bar" title="Bấm góc trên bên phải để nhập link">
-        <input type="text" id="link-input" value="" placeholder="Nhập link hoặc từ khóa..." autocomplete="off" spellcheck="false">
+        <input type="text" id="link-input" value="" placeholder="Nhập link..." autocomplete="off" spellcheck="false">
         <button class="btn-icon set-btn" id="set-btn" title="Lưu làm link mặc định (Set Web)">
             <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l2 2h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm-6-11h-2v3H8l4 4 4-4h-3v-3z"/></svg>
         </button>
@@ -207,7 +207,7 @@
             }
         }, true);
 
-        const HARDCODED_LINK = 'https://yanhh3d.plus';
+        const HARDCODED_LINK = 'https://yanhh3d.plus/';
         const $ = id => document.getElementById(id);
         const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop');
 
