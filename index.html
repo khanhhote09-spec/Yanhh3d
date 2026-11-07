@@ -207,6 +207,29 @@
             }
         }, true);
 
+        // --- BỔ SUNG: CHẶN PHÍM TẮT VÀ CẢNH BÁO TẢI LẠI (YÊU CẦU 3) ---
+
+        // 1. Chặn các phím tắt tải lại trang (F5, Ctrl+R, Cmd+R)
+        document.addEventListener('keydown', function(e) {
+            if (
+                e.key === 'F5' || 
+                (e.ctrlKey && e.key.toLowerCase() === 'r') || 
+                (e.metaKey && e.key.toLowerCase() === 'r')
+            ) {
+                e.preventDefault();
+                console.log("Đã chặn hành vi tải lại trang bằng phím tắt.");
+            }
+        });
+
+        // 2. Hiển thị hộp thoại cảnh báo khi người dùng bấm nút Reload trên trình duyệt hoặc tắt tab
+        window.addEventListener('beforeunload', function(e) {
+            e.preventDefault();
+            e.returnValue = ''; // Bắt buộc đối với các trình duyệt hiện đại
+            return '';
+        });
+
+        // -------------------------------------------------------------
+
         const HARDCODED_LINK = 'https://yanhh3d.de/';
         const $ = id => document.getElementById(id);
         const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop');
