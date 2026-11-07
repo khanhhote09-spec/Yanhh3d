@@ -37,6 +37,9 @@
             flex-direction: column;
             overflow: hidden;
             position: relative;
+            /* Chặn hiệu ứng kéo nảy (bounce) và kéo xuống reload trên mobile */
+            overscroll-behavior-y: none;
+            touch-action: pan-x pan-y;
         }
 
         :fullscreen .url-bar, :-webkit-full-screen .url-bar {
@@ -178,7 +181,7 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
-        <!-- Đã thêm cơ chế sandbox chặt chẽ để chặn popup, nhảy tab và quảng cáo độc hại -->
+        <!-- Sandbox chặn popup, nhảy tab và quảng cáo độc hại -->
         <iframe id="main-iframe" src="https://yanhh3d.de/" title="Website" loading="eager" 
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
             allowfullscreen 
@@ -207,9 +210,9 @@
             }
         }, true);
 
-        // --- BỔ SUNG: CHẶN PHÍM TẮT VÀ CẢNH BÁO TẢI LẠI (YÊU CẦU 3) ---
+        // --- CHẶN TẢI LẠI (RELOAD) & PHÍM TẮT ---
 
-        // 1. Chặn các phím tắt tải lại trang (F5, Ctrl+R, Cmd+R)
+        // 1. Chặn các phím tắt tải lại trang (F5, Ctrl+R, Cmd+R, và cả Ctrl+F5)
         document.addEventListener('keydown', function(e) {
             if (
                 e.key === 'F5' || 
@@ -221,14 +224,33 @@
             }
         });
 
-        // 2. Hiển thị hộp thoại cảnh báo khi người dùng bấm nút Reload trên trình duyệt hoặc tắt tab
+        // 2. Hiển thị hộp thoại cảnh báo khi người dùng bấm nút Reload trên trình duyệt hoặc đóng tab
         window.addEventListener('beforeunload', function(e) {
             e.preventDefault();
             e.returnValue = ''; // Bắt buộc đối với các trình duyệt hiện đại
             return '';
         });
 
-        // -------------------------------------------------------------
+        // 3. Chặn hành vi kéo vuốt xuống (Pull-to-refresh) trên thiết bị di động
+        let lastTouchY = 0;
+        document.addEventListener('touchstart', function(e) {
+            if (e.touches.length === 1) {
+                lastTouchY = e.touches[0].clientY;
+            }
+        }, { passive: true });
+
+        document.addEventListener('touchmove', function(e) {
+            let touchY = e.touches[0].clientY;
+            // Nếu người dùng đang ở đầu trang và cố gắng kéo xuống tiếp thì chặn lại
+            if (window.scrollY <= 0 && touchY > lastTouchY && e.cancelable) {
+                // Chỉ chặn nếu không nằm trong khung cuộn nội dung khác
+                // (giúp tránh việc vuốt nguyên trang bị kéo sập reload)
+                e.preventDefault();
+            }
+            lastTouchY = touchY;
+        }, { passive: false });
+
+        // ----------------------------------------
 
         const HARDCODED_LINK = 'https://yanhh3d.de/';
         const $ = id => document.getElementById(id);
