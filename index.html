@@ -141,7 +141,12 @@
             background: #34c759;
         }
 
-        .url-bar.active-mode .btn-icon.set-btn {
+        .btn-icon.reload-btn {
+            background: #007aff;
+        }
+
+        .url-bar.active-mode .btn-icon.set-btn,
+        .url-bar.active-mode .btn-icon.reload-btn {
             display: flex;
             opacity: 1;
             pointer-events: auto;
@@ -193,6 +198,9 @@
 
     <div class="url-bar" id="url-bar" title="Bấm góc trên bên phải để nhập link">
         <input type="text" id="link-input" value="" placeholder="Nhập link..." autocomplete="off" spellcheck="false">
+        <button class="btn-icon reload-btn" id="reload-btn" title="Tải lại trang">
+            <svg viewBox="0 0 24 24"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
+        </button>
         <button class="btn-icon set-btn" id="set-btn" title="Lưu làm link mặc định (Set Web)">
             <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l2 2h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm-6-11h-2v3H8l4 4 4-4h-3v-3z"/></svg>
         </button>
@@ -243,8 +251,6 @@
             let touchY = e.touches[0].clientY;
             // Nếu người dùng đang ở đầu trang và cố gắng kéo xuống tiếp thì chặn lại
             if (window.scrollY <= 0 && touchY > lastTouchY && e.cancelable) {
-                // Chỉ chặn nếu không nằm trong khung cuộn nội dung khác
-                // (giúp tránh việc vuốt nguyên trang bị kéo sập reload)
                 e.preventDefault();
             }
             lastTouchY = touchY;
@@ -338,6 +344,13 @@
 
         backdrop.addEventListener('touchstart', closeUrlBar, {passive: true});
         backdrop.addEventListener('click', closeUrlBar);
+
+        // Sự kiện nút Tải lại (Reload) iframe thủ công khi người dùng mở thanh công cụ
+        $('reload-btn').onclick = (e) => {
+            e.stopPropagation();
+            iframe.src = iframe.src; // Tải lại trang hiện tại trong iframe
+            closeUrlBar();
+        };
 
         $('set-btn').onclick = (e) => {
             e.stopPropagation();
