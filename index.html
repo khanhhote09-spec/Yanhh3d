@@ -3,7 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>YanHH3D</title>
+    <title>YanHH3D</title
+    <link rel="preconnect" href="https://yanhh3d.de">
+    <link rel="dns-prefetch" href="https://yanhh3d.de">
     <style>
         *, *::before, *::after {
             margin: 0;
@@ -186,8 +188,8 @@
     <div class="backdrop" id="backdrop"></div>
 
     <div class="iframe-container" id="iframe-container">
-        <!-- Sandbox chặn popup, nhảy tab và quảng cáo độc hại -->
-        <iframe id="main-iframe" src="https://yanhh3d.de/" title="Website" loading="eager" 
+        <!-- Sandbox chặn popup, nhảy tab và quảng cáo độc hại; thêm fetchpriority để tối ưu tốc độ mạng -->
+        <iframe id="main-iframe" src="https://yanhh3d.de/" title="Website" loading="eager" fetchpriority="high"
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
             allowfullscreen 
             webkitallowfullscreen 
@@ -385,6 +387,7 @@
         document.addEventListener('fullscreenchange', handleFullscreenOrientation);
         document.addEventListener('webkitfullscreenchange', handleFullscreenOrientation);
 
+        // --- FIX LỖI TẮT MÀN HÌNH (WAKE LOCK API) ---
         let wakeLock = null;
         const requestWakeLock = async () => {
             if ('wakeLock' in navigator) {
@@ -406,7 +409,7 @@
             }
         });
         
-        ['click', 'touchstart'].forEach(evt => {
+        ['click', 'touchstart', 'mousemove'].forEach(evt => {
             document.addEventListener(evt, () => {
                 if (!wakeLock) requestWakeLock();
             }, {passive: true});
