@@ -4,12 +4,33 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YanHH3D</title>
-    <!-- DNS 1.1.1.1 (Cloudflare) prefetch & preconnect -->
-    <link rel="dns-prefetch" href="https://one.one.one.one">
-    <link rel="dns-prefetch" href="https://cloudflare-dns.com">
-    <link rel="preconnect" href="https://one.one.one.one" crossorigin>
-    <link rel="preconnect" href="https://cloudflare-dns.com" crossorigin>
-    <link rel="preconnect" href="https://yanhh3d.baby">
+
+    <!-- Preconnect động theo link đã set trong localStorage -->
+    <script>
+        (function () {
+            const DEFAULT_LINK = 'https://yanhh3d.baby/';
+            try {
+                const saved = (localStorage.getItem('custom_main_link') || '').trim();
+                const normalized = saved
+                    ? 'https://' + saved.replace(/^https?:\/\//i, '')
+                    : DEFAULT_LINK;
+                const origin = new URL(normalized).origin;
+
+                const preconnect = document.createElement('link');
+                preconnect.rel = 'preconnect';
+                preconnect.href = origin;
+                preconnect.crossOrigin = 'anonymous';
+                document.head.appendChild(preconnect);
+
+                const dnsPrefetch = document.createElement('link');
+                dnsPrefetch.rel = 'dns-prefetch';
+                dnsPrefetch.href = origin;
+                document.head.appendChild(dnsPrefetch);
+            } catch (e) {}
+        })();
+    </script>
+    <link rel="dns-prefetch" href="//www.google.com">
+
     <style>
         *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         html, body, .iframe-container, iframe { -ms-overflow-style: none !important; scrollbar-width: none !important; }
@@ -23,6 +44,21 @@
         :fullscreen .url-bar, :-webkit-full-screen .url-bar { display: none !important; }
         .backdrop { position: fixed; inset: 0; z-index: 999998; display: none; }
         .backdrop.active { display: block; }
+
+        /* Lớp chặn chạm vô tình khi đang ở chế độ xem ngang */
+        .landscape-guard {
+            position: fixed;
+            inset: 0;
+            z-index: 999990;
+            display: none;
+            background: transparent;
+            pointer-events: none;
+            touch-action: none;
+        }
+        body.landscape-mode:not(.url-bar-open) .landscape-guard {
+            display: block;
+            pointer-events: auto;
+        }
 
         .url-bar {
             width: 52px; height: 52px; background: transparent; display: flex; align-items: center; justify-content: center;
@@ -58,23 +94,36 @@
 
         .iframe-container { flex: 1; width: 100%; height: 100%; background: #000; position: relative; overflow: hidden; -webkit-overflow-scrolling: touch; z-index: 1; }
         iframe { width: calc(100% + 20px) !important; height: 100% !important; border: none; display: block; will-change: transform; transform: translate3d(0,0,0); -webkit-user-select: text !important; user-select: text !important; }
+
+        .net-toast {
+            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%) translateY(20px);
+            background: rgba(24, 24, 24, 0.92); color: #fff; border: 1px solid rgba(255,255,255,0.14);
+            padding: 8px 14px; border-radius: 999px; font-size: 12px; z-index: 1000000;
+            opacity: 0; pointer-events: none; transition: opacity 0.2s ease, transform 0.2s ease;
+            backdrop-filter: blur(8px); white-space: nowrap;
+        }
+        .net-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
     </style>
 </head>
 <body>
     <div class="backdrop" id="backdrop"></div>
+    <div class="landscape-guard" id="landscape-guard" aria-hidden="true"></div>
     <div class="iframe-container" id="iframe-container">
-        <iframe id="main-iframe" src="https://yanhh3d.baby/" title="Website" loading="eager" fetchpriority="high"
+        <iframe id="main-iframe" title="Website" loading="eager" fetchpriority="high"
+            referrerpolicy="no-referrer-when-downgrade"
             allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen webkitallowfullscreen mozallowfullscreen
             sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
     </div>
 
     <div class="url-bar" id="url-bar" title="Bấm để mở thanh công cụ">
-        <img src="" alt="Site Icon" class="brand-logo" id="brand-logo" title="Trang chủ đã set">
+        <img src="" alt="Site Icon" class="brand-logo" id="brand-logo" title="Trang chủ đã set" decoding="async" referrerpolicy="no-referrer">
         <input type="text" id="link-input" placeholder="https://..." autocomplete="off" spellcheck="false">
         <button class="btn-icon set-btn" id="set-btn" title="Lưu làm link mặc định (Set Web)">
             <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l2 2h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm-6-11h-2v3H8l4 4 4-4h-3v-3z"/></svg>
         </button>
     </div>
+
+    <div class="net-toast" id="net-toast" role="status" aria-live="polite"></div>
 
     <script>
         window.open = () => null;
@@ -100,7 +149,56 @@
         const PREFIX = 'https://';
         const FALLBACK_LOGO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="%23ff9500"/><stop offset="100%" stop-color="%23ff2d55"/></linearGradient></defs><rect width="64" height="64" rx="32" fill="url(%23g)"/><text x="50%" y="54%" font-family="Arial,sans-serif" font-weight="bold" font-size="22" fill="%23fff" text-anchor="middle" dominant-baseline="middle">WEB</text></svg>';
         const $ = id => document.getElementById(id);
-        const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop'), brandLogo = $('brand-logo');
+        const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop'), brandLogo = $('brand-logo'), netToast = $('net-toast'), landscapeGuard = $('landscape-guard');
+
+        let currentLoadedUrl = '';
+        let iframeLoadedOk = false;
+        let loadWatchdog = null;
+        let toastTimer = null;
+        let lastFaviconHost = '';
+        const preconnectedOrigins = new Set();
+
+        function isLandscapeView() {
+            const isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+            const orientType = screen.orientation?.type || '';
+            return isFs || orientType.startsWith('landscape') || window.innerWidth > window.innerHeight;
+        }
+
+        function syncLandscapeGuardState() {
+            document.body.classList.toggle('landscape-mode', isLandscapeView());
+            document.body.classList.toggle('url-bar-open', urlBar.classList.contains('active-mode'));
+        }
+
+        ['pointerdown', 'touchstart', 'mousedown', 'click', 'touchend'].forEach(evt => {
+            landscapeGuard.addEventListener(evt, e => {
+                if (isLandscapeView() && !urlBar.classList.contains('active-mode')) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation?.();
+                }
+            }, { capture: true, passive: false });
+        });
+
+        function ensurePreconnect(url) {
+            try {
+                const origin = new URL(url).origin;
+                if (preconnectedOrigins.has(origin)) return;
+                preconnectedOrigins.add(origin);
+
+                const link = document.createElement('link');
+                link.rel = 'preconnect';
+                link.href = origin;
+                link.crossOrigin = 'anonymous';
+                document.head.appendChild(link);
+            } catch {}
+        }
+
+        function showToast(msg, duration = 2400) {
+            netToast.textContent = msg;
+            netToast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => netToast.classList.remove('show'), duration);
+        }
 
         const normalizeUrl = u => {
             const trimmed = (u || '').trim();
@@ -138,21 +236,52 @@
         input.addEventListener('focus', () => requestAnimationFrame(enforceHttpsPrefix));
 
         brandLogo.src = FALLBACK_LOGO;
-        brandLogo.addEventListener('error', () => { if (brandLogo.src !== FALLBACK_LOGO) brandLogo.src = FALLBACK_LOGO; });
+        brandLogo.addEventListener('error', () => {
+            if (brandLogo.src !== FALLBACK_LOGO) brandLogo.src = FALLBACK_LOGO;
+        });
 
         function updateBrandLogo(url) {
+            if (!navigator.onLine) {
+                brandLogo.src = FALLBACK_LOGO;
+                return;
+            }
             try {
                 const parsed = new URL(normalizeUrl(url));
                 brandLogo.title = `Trang chủ: ${parsed.hostname}`;
+                if (parsed.hostname === lastFaviconHost && brandLogo.src && brandLogo.src !== FALLBACK_LOGO) return;
+                lastFaviconHost = parsed.hostname;
                 brandLogo.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(parsed.hostname)}&sz=64`;
             } catch {
                 brandLogo.src = FALLBACK_LOGO;
             }
         }
 
+        function armLoadWatchdog(targetUrl) {
+            clearTimeout(loadWatchdog);
+            iframeLoadedOk = false;
+            loadWatchdog = setTimeout(() => {
+                if (!iframeLoadedOk) {
+                    if (!navigator.onLine) {
+                        showToast('Mất kết nối mạng, đang chờ khôi phục...');
+                    } else {
+                        showToast('Mạng phản hồi chậm, đang thử tải lại...');
+                        iframe.src = targetUrl;
+                    }
+                }
+            }, 12000);
+        }
+
+        iframe.addEventListener('load', () => {
+            if (iframe.src && iframe.src !== 'about:blank') {
+                iframeLoadedOk = true;
+                clearTimeout(loadWatchdog);
+            }
+        });
+
         function closeUrlBar() {
             urlBar.classList.remove('active-mode');
             backdrop.classList.remove('active');
+            syncLandscapeGuardState();
             input.blur();
         }
 
@@ -163,30 +292,58 @@
             updateBrandLogo(homeUrl);
             urlBar.classList.add('active-mode');
             backdrop.classList.add('active');
+            syncLandscapeGuardState();
             requestAnimationFrame(() => setTimeout(() => { input.focus(); enforceHttpsPrefix(); }, 50));
         }
 
-        function setIframeSrc(url) {
+        function setIframeSrc(url, { force = false } = {}) {
             closeUrlBar();
-            requestAnimationFrame(() => { if (iframe.src !== url) iframe.src = url; });
+            ensurePreconnect(url);
+            if (!navigator.onLine) {
+                currentLoadedUrl = url;
+                showToast('Không có kết nối mạng');
+                return;
+            }
+            const shouldAssign = force || currentLoadedUrl !== url || !iframeLoadedOk;
+            currentLoadedUrl = url;
+            if (!shouldAssign) return;
+
+            armLoadWatchdog(url);
+            requestAnimationFrame(() => {
+                iframe.src = url;
+            });
         }
 
-        function loadHome() {
+        function loadHome({ force = false } = {}) {
             const homeUrl = getCustomHome();
             input.value = homeUrl;
             updateBrandLogo(homeUrl);
-            setIframeSrc(homeUrl);
+            setIframeSrc(homeUrl, { force });
         }
 
         function navigate() {
             const raw = input.value.trim();
             const body = raw.replace(/^https?:\/\//i, '').trim();
-            if (!body) return loadHome();
+            if (!body) return loadHome({ force: true });
             const isUrl = body.includes('.') && !body.includes(' ');
             const targetUrl = isUrl ? PREFIX + body : `https://www.google.com/search?q=${encodeURIComponent(body)}&igu=1`;
             input.value = targetUrl;
-            setIframeSrc(targetUrl);
+            setIframeSrc(targetUrl, { force: true });
         }
+
+        window.addEventListener('offline', () => {
+            clearTimeout(loadWatchdog);
+            showToast('Mất kết nối mạng');
+        });
+
+        window.addEventListener('online', () => {
+            showToast('Đã kết nối lại mạng');
+            const target = currentLoadedUrl || getCustomHome();
+            updateBrandLogo(getCustomHome());
+            if (!iframeLoadedOk) {
+                setIframeSrc(target, { force: true });
+            }
+        });
 
         let touchStarted = false;
         urlBar.addEventListener('touchstart', e => { touchStarted = true; if (!urlBar.classList.contains('active-mode')) openUrlBar(e); }, { passive: false });
@@ -195,7 +352,7 @@
             if (!urlBar.classList.contains('active-mode')) openUrlBar(e);
         });
 
-        brandLogo.addEventListener('click', e => { if (urlBar.classList.contains('active-mode')) { e.stopPropagation(); loadHome(); } });
+        brandLogo.addEventListener('click', e => { if (urlBar.classList.contains('active-mode')) { e.stopPropagation(); loadHome({ force: true }); } });
         backdrop.addEventListener('touchstart', closeUrlBar, { passive: true });
         backdrop.addEventListener('click', closeUrlBar);
 
@@ -203,9 +360,10 @@
             e.stopPropagation();
             const fullUrl = normalizeUrl(input.value);
             localStorage.setItem('custom_main_link', fullUrl);
+            ensurePreconnect(fullUrl);
             input.value = fullUrl;
             updateBrandLogo(fullUrl);
-            loadHome();
+            loadHome({ force: true });
         };
         input.onkeypress = e => { if (e.key === 'Enter') navigate(); };
 
@@ -213,9 +371,13 @@
             const fs = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
             if (fs && screen.orientation?.lock) screen.orientation.lock('landscape').catch(() => {});
             else if (!fs && screen.orientation?.unlock) screen.orientation.unlock();
+            syncLandscapeGuardState();
         };
         document.addEventListener('fullscreenchange', handleFullscreenOrientation);
         document.addEventListener('webkitfullscreenchange', handleFullscreenOrientation);
+        window.addEventListener('resize', syncLandscapeGuardState);
+        window.addEventListener('orientationchange', syncLandscapeGuardState);
+        screen.orientation?.addEventListener?.('change', syncLandscapeGuardState);
 
         let wakeLock = null;
         const requestWakeLock = async () => {
@@ -225,7 +387,10 @@
                 wakeLock.addEventListener('release', () => { wakeLock = null; });
             } catch {}
         };
-        document.addEventListener('DOMContentLoaded', () => { loadHome(); requestWakeLock(); });
+
+        syncLandscapeGuardState();
+        loadHome({ force: true });
+        document.addEventListener('DOMContentLoaded', requestWakeLock);
         document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') requestWakeLock(); });
         ['click', 'touchstart', 'mousemove'].forEach(evt => document.addEventListener(evt, () => { if (!wakeLock) requestWakeLock(); }, { passive: true }));
     </script>
