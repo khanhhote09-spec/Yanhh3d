@@ -3,347 +3,253 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>YanHH3D</title>
+    <title>YanHH3D Browser</title>
     <style>
-        *, *::before, *::after {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        html, body, .iframe-container, iframe {
-            -ms-overflow-style: none !important;
-            scrollbar-width: none !important;
-        }
-        
-        html::-webkit-scrollbar, 
-        body::-webkit-scrollbar, 
-        .iframe-container::-webkit-scrollbar, 
-        iframe::-webkit-scrollbar {
-            display: none !important;
-            width: 0 !important;
-            height: 0 !important;
-        }
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        html, body, .box, iframe, .tabs, .nav { -ms-overflow-style: none !important; scrollbar-width: none !important; }
+        html::-webkit-scrollbar, body::-webkit-scrollbar, .box::-webkit-scrollbar, iframe::-webkit-scrollbar, .tabs::-webkit-scrollbar, .nav::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
 
         html, body {
-            width: 100%;
-            max-width: 100vw;
-            height: 100vh;
-            height: 100dvh;
-            background: #000;
+            width: 100%; height: 100dvh; background: #000;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            position: relative;
+            display: flex; flex-direction: column; overflow: hidden; position: relative;
         }
 
-        :fullscreen .url-bar, :-webkit-full-screen .url-bar {
-            display: none !important;
+        :fullscreen .bar, :-webkit-full-screen .bar { display: none !important; }
+
+        .bg { position: fixed; inset: 0; z-index: 999998; display: none; background: rgba(0,0,0,.35); }
+        .bg.on { display: block; }
+
+        .bar {
+            position: absolute; top: env(safe-area-inset-top, 0px); right: env(safe-area-inset-right, 0px);
+            width: 48px; height: 48px; z-index: 999999;
+            display: flex; flex-direction: column; align-items: flex-end; cursor: pointer;
+        }
+        .bar.on {
+            top: 0; right: 0; left: 0; width: 100%; height: auto;
+            padding-top: env(safe-area-inset-top, 0px);
+            padding-left: env(safe-area-inset-left, 0px);
+            padding-right: env(safe-area-inset-right, 0px);
+            background: #141416; border-bottom: 1px solid #2c2c30; cursor: default;
         }
 
-        .backdrop {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            z-index: 999998;
-            display: none;
-            background: transparent;
+        .pill {
+            margin: 8px; width: 32px; height: 32px; border-radius: 50%;
+            background: rgba(28,28,30,.55); border: 1px solid rgba(255,255,255,.16);
+            color: #fff; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(4px);
+        }
+        .bar.on .pill { display: none; }
+
+        .tabs, .nav { display: none; width: 100%; align-items: center; }
+        .bar.on .tabs {
+            display: flex; min-height: 32px; background: #0d0d0f; padding: 4px 6px 0;
+            gap: 4px; overflow-x: auto; -webkit-overflow-scrolling: touch;
+        }
+        .bar.on .nav {
+            display: flex; min-height: 44px; padding: 4px 6px;
+            gap: 5px; overflow-x: auto; -webkit-overflow-scrolling: touch;
         }
 
-        .backdrop.active {
-            display: block;
+        .tab {
+            height: 28px; min-width: 84px; max-width: clamp(110px, 24vw, 190px);
+            background: #1c1c1f; color: #9e9ea4; border-radius: 6px 6px 0 0;
+            padding: 0 6px 0 8px; display: flex; align-items: center;
+            gap: 4px; font-size: clamp(11px, 2.8vw, 12px); cursor: pointer; flex-shrink: 0;
+        }
+        .tab.on { background: #141416; color: #fff; font-weight: 500; }
+        .tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; flex: 1; }
+        .tab b { padding: 0 3px; color: #888; font-weight: 400; font-size: 14px; }
+        .add { width: 28px; height: 28px; border: none; background: transparent; color: #ccc; font-size: 17px; cursor: pointer; flex-shrink: 0; }
+
+        input {
+            flex: 1 1 110px; min-width: 80px; height: 32px; padding: 0 10px;
+            border-radius: 16px; border: 1px solid #2c2c30; background: #1f1f23;
+            color: #fff !important; font-size: 16px; outline: none;
+            transform: scale(0.8125); transform-origin: center center; margin: 0 -18px;
+            -webkit-user-select: text; user-select: text;
+        }
+        input:focus { border-color: #0a84ff; }
+
+        .btn {
+            width: 30px; height: 30px; border-radius: 50%; border: none; background: #242429;
+            color: #e5e5ea; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+        }
+        .btn:disabled { opacity: .3; pointer-events: none; }
+        .btn.find { background: #0a84ff; color: #fff; }
+        .btn.set { background: #30d158; color: #000; }
+        svg { width: 15px; height: 15px; fill: currentColor; pointer-events: none; }
+
+        @media (max-width: 420px) {
+            .bar.on .nav { gap: 4px; padding: 4px; }
+            .btn { width: 27px; height: 27px; }
+            svg { width: 14px; height: 14px; }
+            input { min-width: 68px; }
         }
 
-        .url-bar {
-            width: 60px;
-            height: 60px;
-            background: transparent;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 0;
-            gap: 6px;
-            z-index: 999999;
-            position: absolute;
-            top: 0;
-            right: 0;
-            cursor: pointer;
-            pointer-events: auto;
-            transition: width 0.15s cubic-bezier(0, 0, 0.2, 1), height 0.15s cubic-bezier(0, 0, 0.2, 1);
-            will-change: width, height;
+        @media (min-width: 768px) {
+            .bar.on .nav { min-height: 48px; padding: 4px 10px; gap: 7px; }
+            .btn { width: 32px; height: 32px; }
+            .tab { min-width: 110px; height: 30px; }
         }
 
-        .url-bar.active-mode {
-            width: 100%;
-            height: 48px;
-            background: #121212;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-            padding: 0 8px;
-            cursor: default;
-        }
-
-        .url-bar input {
-            width: 0;
-            opacity: 0;
-            pointer-events: none;
-            height: 34px;
-            padding: 0;
-            border-radius: 17px;
-            border: none;
-            background: #1e1e1e;
-            color: #fff !important;
-            font-size: 13px;
-            outline: none;
-            -webkit-user-select: text;
-            user-select: text;
-            transition: opacity 0.15s ease;
-        }
-
-        .url-bar.active-mode input {
-            flex: 1;
-            width: auto;
-            opacity: 1;
-            pointer-events: auto;
-            padding: 0 12px;
-            border: 1px solid #2a2a2a;
-        }
-
-        .url-bar input:focus {
-            border-color: #007aff;
-            background: #181818;
-        }
-
-        .btn-icon {
-            height: 34px;
-            width: 34px;
-            border-radius: 17px;
-            border: none;
-            background: #2a2a2a;
-            color: #fff;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-            display: none;
-            opacity: 0;
-            pointer-events: none;
-        }
-
-        .btn-icon.set-btn {
-            background: #34c759;
-        }
-
-        .url-bar.active-mode .btn-icon.set-btn {
-            display: flex;
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .btn-icon svg {
-            width: 16px;
-            height: 16px;
-            fill: currentColor;
-            pointer-events: none;
-        }
-
-        .iframe-container {
-            flex: 1;
-            width: 100%;
-            height: 100%;
-            background: #000;
-            position: relative;
-            overflow: hidden;
-            -webkit-overflow-scrolling: touch;
-            z-index: 1;
-        }
-
+        .box { flex: 1; width: 100%; height: 100%; position: relative; overflow: hidden; }
         iframe {
-            width: calc(100% + 20px) !important;
-            height: 100% !important;
-            border: none;
-            display: block;
-            will-change: transform;
-            transform: translate3d(0, 0, 0);
-            -webkit-user-select: text !important;
-            user-select: text !important;
+            position: absolute; inset: 0; width: calc(100% + 20px) !important; height: 100% !important;
+            border: none; display: none; -webkit-user-select: text !important; user-select: text !important;
+        }
+        iframe.on { display: block; }
+
+        /* Ẩn nút nổi nhưng vẫn chạm vùng góc trên phải để mở thanh công cụ */
+        .bar:not(.on) .pill {
+            opacity: 0;
+            pointer-events: none;
         }
     </style>
 </head>
 <body>
-    <div class="backdrop" id="backdrop"></div>
+    <div class="bg" id="bg"></div>
+    <div class="box" id="box"></div>
 
-    <div class="iframe-container" id="iframe-container">
-        <iframe id="main-iframe" src="https://yanhh3d.baby" title="Website" loading="eager" 
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
-            allowfullscreen 
-            webkitallowfullscreen 
-            mozallowfullscreen
-            sandbox="allow-scripts allow-same-origin allow-forms">
-        </iframe>
-    </div>
-
-    <div class="url-bar" id="url-bar" title="Bấm góc trên bên phải để nhập link">
-        <input type="text" id="link-input" value="" placeholder="Nhập link hoặc từ khóa..." autocomplete="off" spellcheck="false">
-        <button class="btn-icon set-btn" id="set-btn" title="Lưu làm link mặc định (Set Web)">
-            <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l2 2h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm-6-11h-2v3H8l4 4 4-4h-3v-3z"/></svg>
-        </button>
+    <div class="bar" id="bar" title="Bấm góc trên phải để mở trình duyệt">
+        <div class="pill"><svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 100 20 10 10 0 000-20zm-1 17.9A8 8 0 014.2 10L9 15v1c0 1.1.9 2 2 2v1.9zm6.9-2.5c-.3-.8-1-1.4-1.9-1.4h-1v-3c0-.5-.4-1-1-1H8v-2h2c.5 0 1-.4 1-1V7h2c1.1 0 2-.9 2-2v-.4a8 8 0 012.9 12.8z"/></svg></div>
+        <div class="tabs" id="tabs"></div>
+        <div class="nav">
+            <button class="btn" id="rel" title="Tải lại"><svg viewBox="0 0 24 24"><path d="M17.6 6.4A8 8 0 1019.7 14h-2.1A6 6 0 1112 6c1.7 0 3.1.7 4.2 1.8L13 11h7V4l-2.4 2.4z"/></svg></button>
+            <button class="btn" id="home" title="Trang chủ"><svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg></button>
+            <input type="text" id="url" placeholder="Nhập link hoặc tìm kiếm..." autocomplete="off" spellcheck="false">
+            <button class="btn find" id="find" title="Tìm kiếm / Đi tới"><svg viewBox="0 0 24 24"><path d="M15.5 14h-.8l-.3-.3a6.5 6.5 0 10-.7.7l.3.3v.8l5 5 1.5-1.5-5-5zm-6 0A4.5 4.5 0 1114 9.5 4.5 4.5 0 019.5 14z"/></svg></button>
+            <button class="btn set" id="set" title="Lưu làm link mặc định"><svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h7l2 2h5a2 2 0 012 2v12a2 2 0 01-2 2zm-6-11h-2v3H8l4 4 4-4h-3v-3z"/></svg></button>
+        </div>
     </div>
 
     <script>
-        window.open = function() { return null; };
-        document.addEventListener('click', function(e) {
-            let target = e.target.closest('a');
-            if (target && (target.target === '_blank' || target.target === '_top' || target.target === '_parent')) {
-                target.target = '_self';
-            }
+        window.open = () => null;
+        document.addEventListener('click', e => {
+            const a = e.target.closest('a');
+            if (a && ['_blank', '_top', '_parent'].includes(a.target)) a.target = '_self';
         }, true);
 
-        const HARDCODED_LINK = 'https://yanhh3d.baby/';
         const $ = id => document.getElementById(id);
-        const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop');
+        const DEFAULT_URL = 'https://tvhayd.pro/';
+        const getHome = () => localStorage.getItem('custom_main_link') || DEFAULT_URL;
+        const getTitle = u => {
+            try {
+                if (u.includes('google.com/search')) return 'Tìm: ' + (new URL(u).searchParams.get('q') || 'Google');
+                return new URL(u).hostname.replace(/^www\./, '');
+            } catch { return u.replace(/^https?:\/\//i, '').split('/')[0] || 'Tab mới'; }
+        };
 
-        function stripProtocol(url) {
-            return url.replace(/^https?:\/\//i, '');
+        let tabs = [], curId = null;
+        const curTab = () => tabs.find(t => t.id === curId);
+
+        function toggleBar(open) {
+            $('bar').classList.toggle('on', open);
+            $('bg').classList.toggle('on', open);
+            if (open) { render(); setTimeout(() => { $('url').focus(); $('url').select(); }, 40); }
+            else $('url').blur();
         }
 
-        function getCustomHome() {
-            return localStorage.getItem('custom_main_link') || HARDCODED_LINK;
+        function addTab(url = getHome()) {
+            const id = Date.now() + Math.random();
+            const f = document.createElement('iframe');
+            f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+            f.allowFullscreen = true;
+            f.sandbox = 'allow-scripts allow-same-origin allow-forms';
+            f.src = url;
+            $('box').appendChild(f);
+            tabs.push({ id, f, url, title: getTitle(url) });
+            switchTab(id);
         }
 
-        function closeUrlBar() {
-            urlBar.classList.remove('active-mode');
-            backdrop.classList.remove('active');
-            input.blur();
+        function switchTab(id) {
+            curId = id;
+            tabs.forEach(t => t.f.classList.toggle('on', t.id === id));
+            render();
         }
 
-        function openUrlBar(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            urlBar.classList.add('active-mode');
-            backdrop.classList.add('active');
-            requestAnimationFrame(() => {
-                setTimeout(() => input.focus(), 50);
-            });
-        }
-
-        function setIframeSrc(url) {
-            closeUrlBar();
-            requestAnimationFrame(() => {
-                if (iframe.src !== url) {
-                    iframe.src = url;
-                }
-            });
-        }
-
-        function loadHome() {
-            const homeUrl = getCustomHome();
-            input.value = stripProtocol(homeUrl);
-            setIframeSrc(homeUrl);
-        }
-
-        document.addEventListener('DOMContentLoaded', loadHome);
-
-        function navigate() {
-            let val = input.value.trim();
-            if (!val) {
-                loadHome();
-                return;
-            }
-            
-            let targetUrl = val;
-            if (/^https?:\/\//i.test(val) || (val.includes('.') && !val.includes(' '))) {
-                if (!/^https?:\/\//i.test(val)) targetUrl = 'https://' + val;
-                input.value = stripProtocol(targetUrl);
-                setIframeSrc(targetUrl);
-            } else {
-                targetUrl = `https://www.google.com/search?q=${encodeURIComponent(val)}&igu=1`;
-                input.value = val;
-                setIframeSrc(targetUrl);
-            }
-        }
-
-        urlBar.addEventListener('click', function(e) {
-            if (!urlBar.classList.contains('active-mode')) {
-                openUrlBar(e);
-            }
-        });
-        
-        urlBar.addEventListener('touchend', function(e) {
-            if (!urlBar.classList.contains('active-mode')) {
-                openUrlBar(e);
-            }
-        }, {passive: false});
-
-        backdrop.addEventListener('touchstart', closeUrlBar, {passive: true});
-        backdrop.addEventListener('click', closeUrlBar);
-
-        $('set-btn').onclick = (e) => {
+        function closeTab(id, e) {
             e.stopPropagation();
-            let val = input.value.trim();
-            let fullUrl = val || stripProtocol(getCustomHome());
+            const idx = tabs.findIndex(t => t.id === id);
+            tabs[idx].f.remove();
+            tabs.splice(idx, 1);
+            if (!tabs.length) return addTab();
+            if (curId === id) switchTab(tabs[Math.max(0, idx - 1)].id);
+            else render();
+        }
 
-            if (val && !/^https?:\/\//i.test(val) && val.includes('.')) {
-                fullUrl = 'https://' + val;
-            } else if (!/^https?:\/\//i.test(fullUrl)) {
-                fullUrl = 'https://' + fullUrl;
-            }
+        function go(url) {
+            const t = curTab();
+            if (!t) return;
+            t.url = url;
+            t.title = getTitle(url);
+            toggleBar(false);
+            t.f.src = url;
+            render();
+        }
 
-            localStorage.setItem('custom_main_link', fullUrl);
-            loadHome();
+        function submitQuery() {
+            const v = $('url').value.trim();
+            if (!v) return go(getHome());
+            const isUrl = /^https?:\/\//i.test(v) || (v.includes('.') && !v.includes(' '));
+            go(isUrl ? (/^https?:\/\//i.test(v) ? v : 'https://' + v) : `https://www.google.com/search?q=${encodeURIComponent(v)}&igu=1`);
+        }
+
+        function render() {
+            const t = curTab();
+            if (!t) return;
+            $('url').value = t.url;
+            $('tabs').innerHTML = tabs.map(x => `
+                <div class="tab ${x.id === curId ? 'on' : ''}" onclick="event.stopPropagation(); switchTab(${x.id})">
+                    <span>${x.title}</span><b onclick="closeTab(${x.id}, event)">&times;</b>
+                </div>`).join('') + `<button class="add" onclick="event.stopPropagation(); addTab()">+</button>`;
+        }
+
+        $('url').onkeypress = e => { if (e.key === 'Enter') submitQuery(); };
+        $('find').onclick = e => { e.stopPropagation(); submitQuery(); };
+        $('rel').onclick = e => { e.stopPropagation(); const t = curTab(); if (t) { toggleBar(false); t.f.src = t.url; } };
+        $('home').onclick = e => { e.stopPropagation(); go(getHome()); };
+        $('set').onclick = e => {
+            e.stopPropagation();
+            let v = $('url').value.trim() || getHome();
+            if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+            localStorage.setItem('custom_main_link', v);
+            toggleBar(false);
         };
 
-        input.onkeypress = function(e) {
-            if (e.key === 'Enter') {
-                navigate();
-            }
-        };
-
-        const handleFullscreenOrientation = () => {
-            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
-            if (isFullscreen && screen.orientation && screen.orientation.lock) {
-                screen.orientation.lock('landscape').catch(() => {});
-            } else if (!isFullscreen && screen.orientation && screen.orientation.unlock) {
-                screen.orientation.unlock();
-            }
-        };
-
-        document.addEventListener('fullscreenchange', handleFullscreenOrientation);
-        document.addEventListener('webkitfullscreenchange', handleFullscreenOrientation);
-
-        // Giữ màn hình luôn sáng (Screen Wake Lock API) cải tiến tự động kích hoạt lại khi chuyển tab/quay lại
-        let wakeLock = null;
-        const requestWakeLock = async () => {
-            if ('wakeLock' in navigator) {
-                try {
-                    wakeLock = await navigator.wakeLock.request('screen');
-                    wakeLock.addEventListener('release', () => {
-                        wakeLock = null;
-                    });
-                } catch (err) {
-                    console.log('Wake Lock error:', err);
-                }
-            }
-        };
-
-        document.addEventListener('DOMContentLoaded', requestWakeLock);
-        document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') {
-                requestWakeLock();
-            }
+        $('bar').addEventListener('click', e => {
+            if ($('bar').classList.contains('on')) e.stopPropagation();
+            else { e.stopPropagation(); toggleBar(true); }
         });
-        
-        // Kích hoạt lại Wake Lock khi người dùng tương tác chạm màn hình
-        ['click', 'touchstart'].forEach(evt => {
-            document.addEventListener(evt, () => {
-                if (!wakeLock) requestWakeLock();
-            }, {passive: true});
+        const closeBar = e => { e.preventDefault(); toggleBar(false); };
+        $('bg').addEventListener('click', closeBar);
+        $('bg').addEventListener('touchstart', closeBar, { passive: false });
+        document.addEventListener('DOMContentLoaded', () => addTab());
+
+        const onFs = () => {
+            const fs = document.fullscreenElement || document.webkitFullscreenElement;
+            if (fs) screen.orientation?.lock?.('landscape').catch(() => {});
+            else screen.orientation?.unlock?.();
+        };
+        document.addEventListener('fullscreenchange', onFs);
+        document.addEventListener('webkitfullscreenchange', onFs);
+
+        // Giữ màn hình luôn sáng (Screen Wake Lock API)
+        let wl = null;
+        const lockScreen = async () => {
+            if ('wakeLock' in navigator && document.visibilityState === 'visible') {
+                if (wl) return;
+                try {
+                    wl = await navigator.wakeLock.request('screen');
+                    wl.addEventListener('release', () => { wl = null; });
+                } catch {}
+            }
+        };
+        document.addEventListener('DOMContentLoaded', lockScreen);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') lockScreen();
+        });
+        ['click', 'touchstart'].forEach(ev => {
+            document.addEventListener(ev, () => { if (!wl) lockScreen(); }, { passive: true });
         });
     </script>
 </body>
