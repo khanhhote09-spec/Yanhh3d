@@ -4,302 +4,347 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>YanHH3D</title>
-    <script>
-        (function () {
-            try {
-                const s = (localStorage.getItem('custom_main_link') || '').trim();
-                const o = new URL(s ? 'https://' + s.replace(/^https?:\/\//i, '') : 'https://yanhh3d.baby/').origin;
-                ['preconnect', 'dns-prefetch'].forEach(r => {
-                    const l = document.createElement('link');
-                    l.rel = r; l.href = o;
-                    if (r === 'preconnect') l.crossOrigin = 'anonymous';
-                    document.head.appendChild(l);
-                });
-            } catch {}
-        })();
-    </script>
-    <link rel="dns-prefetch" href="//www.google.com">
     <style>
-        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        html, body, .iframe-container, iframe { -ms-overflow-style: none !important; scrollbar-width: none !important; }
-        html::-webkit-scrollbar, body::-webkit-scrollbar, .iframe-container::-webkit-scrollbar, iframe::-webkit-scrollbar { display: none !important; width: 0 !important; height: 0 !important; }
-        html, body {
-            width: 100%; max-width: 100vw; height: 100vh; height: 100dvh; background: #000;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            display: flex; flex-direction: column; overflow: hidden; position: relative;
-            overscroll-behavior-y: none; touch-action: pan-x pan-y;
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
-        :fullscreen .url-bar, :-webkit-full-screen .url-bar { display: none !important; }
-        .backdrop, .landscape-guard { position: fixed; inset: 0; display: none; }
-        .backdrop { z-index: 999998; }
-        .backdrop.active { display: block; }
-        .landscape-guard { z-index: 999990; background: transparent; pointer-events: none; touch-action: none; }
-        body.landscape-mode:not(.url-bar-open) .landscape-guard { display: block; pointer-events: auto; }
+
+        html, body, .iframe-container, iframe {
+            -ms-overflow-style: none !important;
+            scrollbar-width: none !important;
+        }
+        
+        html::-webkit-scrollbar, 
+        body::-webkit-scrollbar, 
+        .iframe-container::-webkit-scrollbar, 
+        iframe::-webkit-scrollbar {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+        }
+
+        html, body {
+            width: 100%;
+            max-width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            background: #000;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        :fullscreen .url-bar, :-webkit-full-screen .url-bar {
+            display: none !important;
+        }
+
+        .backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 999998;
+            display: none;
+            background: transparent;
+        }
+
+        .backdrop.active {
+            display: block;
+        }
 
         .url-bar {
-            width: 52px; height: 52px; background: transparent; display: flex; align-items: center; justify-content: center;
-            gap: 8px; z-index: 999999; position: absolute; top: 0; right: 0; cursor: pointer;
-            transition: width .15s cubic-bezier(0,0,.2,1), height .15s cubic-bezier(0,0,.2,1), background .15s ease;
+            width: 60px;
+            height: 60px;
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+            gap: 6px;
+            z-index: 999999;
+            position: absolute;
+            top: 0;
+            right: 0;
+            cursor: pointer;
+            pointer-events: auto;
+            transition: width 0.15s cubic-bezier(0, 0, 0.2, 1), height 0.15s cubic-bezier(0, 0, 0.2, 1);
             will-change: width, height;
         }
-        .url-bar.active-mode { width: 100%; height: 48px; background: #121212; border-bottom: 1px solid rgba(255,255,255,.12); padding: 0 10px; cursor: default; }
 
-        .brand-logo {
-            display: none; opacity: 0; width: 32px; height: 32px; border-radius: 50%; object-fit: cover; flex-shrink: 0;
-            border: 1.5px solid rgba(255,255,255,.25); background: #1a1a1a; box-shadow: 0 2px 8px rgba(0,0,0,.6);
-            transition: opacity .2s ease, transform .2s ease, border-color .2s ease;
+        .url-bar.active-mode {
+            width: 100%;
+            height: 48px;
+            background: #121212;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            padding: 0 8px;
+            cursor: default;
         }
-        .url-bar.active-mode .brand-logo { display: block; opacity: 1; border-color: #ff9500; cursor: pointer; }
-        .url-bar.active-mode .brand-logo:active { transform: scale(.92); }
 
         .url-bar input {
-            width: 0; opacity: 0; pointer-events: none; height: 34px; border-radius: 17px; border: none;
-            background: #1e1e1e; color: #fff !important; font-size: 13px; outline: none;
-            -webkit-user-select: text; user-select: text; transition: opacity .15s ease;
+            width: 0;
+            opacity: 0;
+            pointer-events: none;
+            height: 34px;
+            padding: 0;
+            border-radius: 17px;
+            border: none;
+            background: #1e1e1e;
+            color: #fff !important;
+            font-size: 13px;
+            outline: none;
+            -webkit-user-select: text;
+            user-select: text;
+            transition: opacity 0.15s ease;
         }
-        .url-bar.active-mode input { flex: 1; width: auto; opacity: 1; pointer-events: auto; padding: 0 12px; border: 1px solid #2a2a2a; }
-        .url-bar input:focus { border-color: #007aff; background: #181818; }
+
+        .url-bar.active-mode input {
+            flex: 1;
+            width: auto;
+            opacity: 1;
+            pointer-events: auto;
+            padding: 0 12px;
+            border: 1px solid #2a2a2a;
+        }
+
+        .url-bar input:focus {
+            border-color: #007aff;
+            background: #181818;
+        }
 
         .btn-icon {
-            display: none; opacity: 0; pointer-events: none; height: 34px; width: 34px; border-radius: 17px;
-            border: none; color: #fff; background: #34c759; cursor: pointer; align-items: center; justify-content: center; flex-shrink: 0;
+            height: 34px;
+            width: 34px;
+            border-radius: 17px;
+            border: none;
+            background: #2a2a2a;
+            color: #fff;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            display: none;
+            opacity: 0;
+            pointer-events: none;
         }
-        .url-bar.active-mode .btn-icon { display: flex; opacity: 1; pointer-events: auto; }
-        .btn-icon svg { width: 16px; height: 16px; fill: currentColor; pointer-events: none; }
 
-        .iframe-container { flex: 1; width: 100%; height: 100%; background: #000; position: relative; overflow: hidden; -webkit-overflow-scrolling: touch; z-index: 1; }
-        iframe { width: calc(100% + 20px) !important; height: 100% !important; border: none; display: block; will-change: transform; transform: translate3d(0,0,0); -webkit-user-select: text !important; user-select: text !important; }
-
-        .net-toast {
-            position: fixed; bottom: 16px; left: 50%; transform: translateX(-50%) translateY(20px);
-            background: rgba(24,24,24,.92); color: #fff; border: 1px solid rgba(255,255,255,.14);
-            padding: 8px 14px; border-radius: 999px; font-size: 12px; z-index: 1000000;
-            opacity: 0; pointer-events: none; transition: opacity .2s ease, transform .2s ease;
-            backdrop-filter: blur(8px); white-space: nowrap;
+        .btn-icon.set-btn {
+            background: #34c759;
         }
-        .net-toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+        .url-bar.active-mode .btn-icon.set-btn {
+            display: flex;
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .btn-icon svg {
+            width: 16px;
+            height: 16px;
+            fill: currentColor;
+            pointer-events: none;
+        }
+
+        .iframe-container {
+            flex: 1;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            position: relative;
+            overflow: hidden;
+            -webkit-overflow-scrolling: touch;
+            z-index: 1;
+        }
+
+        iframe {
+            width: calc(100% + 20px) !important;
+            height: 100% !important;
+            border: none;
+            display: block;
+            will-change: transform;
+            transform: translate3d(0, 0, 0);
+            -webkit-user-select: text !important;
+            user-select: text !important;
+        }
     </style>
 </head>
 <body>
     <div class="backdrop" id="backdrop"></div>
-    <div class="landscape-guard" id="landscape-guard" aria-hidden="true"></div>
-    <div class="iframe-container">
-        <iframe id="main-iframe" title="Website" loading="eager" fetchpriority="high"
-            referrerpolicy="no-referrer-when-downgrade"
-            allow="autoplay; encrypted-media; fullscreen; picture-in-picture" allowfullscreen webkitallowfullscreen mozallowfullscreen
-            sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+
+    <div class="iframe-container" id="iframe-container">
+        <iframe id="main-iframe" src="https://yanhh3d.baby" title="Website" loading="eager" 
+            allow="autoplay; encrypted-media; fullscreen; picture-in-picture" 
+            allowfullscreen 
+            webkitallowfullscreen 
+            mozallowfullscreen
+            sandbox="allow-scripts allow-same-origin allow-forms">
+        </iframe>
     </div>
 
-    <div class="url-bar" id="url-bar" title="Bấm để mở thanh công cụ">
-        <img src="" alt="Site Icon" class="brand-logo" id="brand-logo" decoding="async" referrerpolicy="no-referrer">
-        <input type="text" id="link-input" placeholder="https://..." autocomplete="off" spellcheck="false">
-        <button class="btn-icon" id="set-btn" title="Lưu làm link mặc định">
+    <div class="url-bar" id="url-bar" title="Bấm góc trên bên phải để nhập link">
+        <input type="text" id="link-input" value="" placeholder="Nhập link hoặc từ khóa..." autocomplete="off" spellcheck="false">
+        <button class="btn-icon set-btn" id="set-btn" title="Lưu làm link mặc định (Set Web)">
             <svg viewBox="0 0 24 24"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7l2 2h5a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2zm-6-11h-2v3H8l4 4 4-4h-3v-3z"/></svg>
         </button>
     </div>
 
-    <div class="net-toast" id="net-toast" role="status" aria-live="polite"></div>
-
     <script>
-        window.open = () => null;
-        document.addEventListener('click', e => {
-            const a = e.target.closest('a');
-            if (a && ['_blank', '_top', '_parent'].includes(a.target)) a.target = '_self';
+        window.open = function() { return null; };
+        document.addEventListener('click', function(e) {
+            let target = e.target.closest('a');
+            if (target && (target.target === '_blank' || target.target === '_top' || target.target === '_parent')) {
+                target.target = '_self';
+            }
         }, true);
-        document.addEventListener('keydown', e => {
-            if (e.key === 'F5' || ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'r')) e.preventDefault();
-        });
-        window.addEventListener('beforeunload', e => { e.preventDefault(); e.returnValue = ''; return ''; });
 
-        let lastTouchY = 0;
-        document.addEventListener('touchstart', e => { if (e.touches.length === 1) lastTouchY = e.touches[0].clientY; }, { passive: true });
-        document.addEventListener('touchmove', e => {
-            const y = e.touches[0]?.clientY;
-            if (y !== undefined && window.scrollY <= 0 && y > lastTouchY && e.cancelable) e.preventDefault();
-            lastTouchY = y ?? lastTouchY;
-        }, { passive: false });
-
-        const DEFAULT_URL = 'https://yanhh3d.baby/';
-        const PREFIX = 'https://';
-        const FALLBACK_LOGO = 'data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="%23ff9500"/><stop offset="100%" stop-color="%23ff2d55"/></linearGradient></defs><rect width="64" height="64" rx="32" fill="url(%23g)"/><text x="50%" y="54%" font-family="Arial,sans-serif" font-weight="bold" font-size="22" fill="%23fff" text-anchor="middle" dominant-baseline="middle">WEB</text></svg>';
-
+        const HARDCODED_LINK = 'https://yanhh3d.baby/';
         const $ = id => document.getElementById(id);
-        const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop'), logo = $('brand-logo'), toast = $('net-toast'), guard = $('landscape-guard');
+        const input = $('link-input'), iframe = $('main-iframe'), urlBar = $('url-bar'), backdrop = $('backdrop');
 
-        let currentUrl = '', loadedOk = false, watchdog = null, retries = 0, toastTimer = null, lastHost = '', wakeLock = null, touchStarted = false;
-        const preconnected = new Set();
+        function stripProtocol(url) {
+            return url.replace(/^https?:\/\//i, '');
+        }
 
-        const isLandscape = () => Boolean(document.fullscreenElement || document.webkitFullscreenElement) || (screen.orientation?.type || '').startsWith('landscape') || window.innerWidth > window.innerHeight;
-        const syncGuard = () => {
-            document.body.classList.toggle('landscape-mode', isLandscape());
-            document.body.classList.toggle('url-bar-open', urlBar.classList.contains('active-mode'));
-        };
+        function getCustomHome() {
+            return localStorage.getItem('custom_main_link') || HARDCODED_LINK;
+        }
 
-        ['pointerdown', 'touchstart', 'mousedown', 'click', 'touchend'].forEach(ev =>
-            guard.addEventListener(ev, e => {
-                if (isLandscape() && !urlBar.classList.contains('active-mode')) { e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation?.(); }
-            }, { capture: true, passive: false })
-        );
+        function closeUrlBar() {
+            urlBar.classList.remove('active-mode');
+            backdrop.classList.remove('active');
+            input.blur();
+        }
 
-        const preconnect = u => {
-            try {
-                const o = new URL(u).origin;
-                if (preconnected.has(o)) return;
-                preconnected.add(o);
-                const l = document.createElement('link');
-                l.rel = 'preconnect'; l.href = o; l.crossOrigin = 'anonymous';
-                document.head.appendChild(l);
-            } catch {}
-        };
-
-        const showToast = (msg, ms = 2400) => {
-            toast.textContent = msg;
-            toast.classList.add('show');
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => toast.classList.remove('show'), ms);
-        };
-
-        const normalize = u => {
-            const s = (u || '').trim().replace(/^https?:\/\//i, '');
-            return s ? PREFIX + s : DEFAULT_URL;
-        };
-        const getHome = () => normalize(localStorage.getItem('custom_main_link'));
-
-        const enforcePrefix = () => {
-            if (!input.value.startsWith(PREFIX)) input.value = PREFIX + input.value.replace(/^https?:\/\//i, '');
-            if (input.selectionStart < PREFIX.length) input.setSelectionRange(PREFIX.length, Math.max(PREFIX.length, input.selectionEnd));
-        };
-
-        input.addEventListener('keydown', e => {
-            const s = input.selectionStart ?? 0, end = input.selectionEnd ?? 0;
-            if ((e.key === 'Backspace' && s <= PREFIX.length && end <= PREFIX.length) || (e.key === 'Delete' && s < PREFIX.length)) {
+        function openUrlBar(e) {
+            if (e) {
                 e.preventDefault();
-                input.setSelectionRange(PREFIX.length, Math.max(PREFIX.length, end));
+                e.stopPropagation();
+            }
+            urlBar.classList.add('active-mode');
+            backdrop.classList.add('active');
+            requestAnimationFrame(() => {
+                setTimeout(() => input.focus(), 50);
+            });
+        }
+
+        function setIframeSrc(url) {
+            closeUrlBar();
+            requestAnimationFrame(() => {
+                if (iframe.src !== url) {
+                    iframe.src = url;
+                }
+            });
+        }
+
+        function loadHome() {
+            const homeUrl = getCustomHome();
+            input.value = stripProtocol(homeUrl);
+            setIframeSrc(homeUrl);
+        }
+
+        document.addEventListener('DOMContentLoaded', loadHome);
+
+        function navigate() {
+            let val = input.value.trim();
+            if (!val) {
+                loadHome();
+                return;
+            }
+            
+            let targetUrl = val;
+            if (/^https?:\/\//i.test(val) || (val.includes('.') && !val.includes(' '))) {
+                if (!/^https?:\/\//i.test(val)) targetUrl = 'https://' + val;
+                input.value = stripProtocol(targetUrl);
+                setIframeSrc(targetUrl);
+            } else {
+                targetUrl = `https://www.google.com/search?q=${encodeURIComponent(val)}&igu=1`;
+                input.value = val;
+                setIframeSrc(targetUrl);
+            }
+        }
+
+        urlBar.addEventListener('click', function(e) {
+            if (!urlBar.classList.contains('active-mode')) {
+                openUrlBar(e);
             }
         });
-        ['input', 'click'].forEach(ev => input.addEventListener(ev, enforcePrefix));
-        input.addEventListener('focus', () => requestAnimationFrame(enforcePrefix));
+        
+        urlBar.addEventListener('touchend', function(e) {
+            if (!urlBar.classList.contains('active-mode')) {
+                openUrlBar(e);
+            }
+        }, {passive: false});
 
-        logo.src = FALLBACK_LOGO;
-        logo.onerror = () => { if (logo.src !== FALLBACK_LOGO) logo.src = FALLBACK_LOGO; };
+        backdrop.addEventListener('touchstart', closeUrlBar, {passive: true});
+        backdrop.addEventListener('click', closeUrlBar);
 
-        const updateLogo = u => {
-            if (!navigator.onLine) return (logo.src = FALLBACK_LOGO);
-            try {
-                const host = new URL(normalize(u)).hostname;
-                logo.title = `Trang chủ: ${host}`;
-                if (host === lastHost && logo.src !== FALLBACK_LOGO) return;
-                lastHost = host;
-                logo.src = `https://www.google.com/s2/favicons?domain=${encodeURIComponent(host)}&sz=64`;
-            } catch { logo.src = FALLBACK_LOGO; }
-        };
-
-        const assignIframe = u => {
-            try {
-                if (iframe.contentWindow && iframe.src && iframe.src !== 'about:blank') return iframe.contentWindow.location.replace(u);
-            } catch {}
-            iframe.src = u;
-        };
-
-        const armWatchdog = u => {
-            clearTimeout(watchdog);
-            loadedOk = false;
-            watchdog = setTimeout(() => {
-                if (loadedOk) return;
-                if (!navigator.onLine) return showToast('Mất kết nối mạng, đang chờ khôi phục...');
-                if (retries++ < 2) {
-                    showToast('Mạng phản hồi chậm, đang thử tải lại...');
-                    assignIframe(u);
-                    armWatchdog(u);
-                } else showToast('Trang phản hồi chậm, hãy thử lại khi mạng ổn định');
-            }, Math.min(12000 + retries * 4000, 20000));
-        };
-
-        iframe.addEventListener('load', () => {
-            if (!iframe.src || iframe.src === 'about:blank') return;
-            loadedOk = true; retries = 0; clearTimeout(watchdog);
-            try {
-                const href = iframe.contentWindow?.location?.href;
-                if (href && href !== 'about:blank') currentUrl = href;
-            } catch {}
-        });
-        iframe.addEventListener('error', () => {
-            loadedOk = false; clearTimeout(watchdog);
-            showToast(navigator.onLine ? 'Không thể tải trang, đang thử lại...' : 'Không có kết nối mạng');
-        });
-
-        const closeBar = () => { urlBar.classList.remove('active-mode'); backdrop.classList.remove('active'); syncGuard(); input.blur(); };
-        const openBar = e => {
-            e?.preventDefault(); e?.stopPropagation();
-            const h = getHome();
-            input.value = h; updateLogo(h);
-            urlBar.classList.add('active-mode'); backdrop.classList.add('active'); syncGuard();
-            requestAnimationFrame(() => setTimeout(() => { input.focus(); enforcePrefix(); }, 50));
-        };
-
-        const setSrc = (u, force = false) => {
-            closeBar(); preconnect(u);
-            if (!navigator.onLine) { currentUrl = u; return showToast('Không có kết nối mạng'); }
-            const needLoad = force || currentUrl !== u || !loadedOk;
-            currentUrl = u;
-            if (!needLoad) return;
-            retries = 0; armWatchdog(u);
-            requestAnimationFrame(() => assignIframe(u));
-        };
-
-        const loadHome = (force = false) => {
-            const h = getHome();
-            input.value = h; updateLogo(h); setSrc(h, force);
-        };
-
-        const navigate = () => {
-            const body = input.value.trim().replace(/^https?:\/\//i, '').trim();
-            if (!body) return loadHome(true);
-            const target = body.includes('.') && !body.includes(' ') ? PREFIX + body : `https://www.google.com/search?q=${encodeURIComponent(body)}&igu=1`;
-            input.value = target; setSrc(target, true);
-        };
-
-        window.addEventListener('offline', () => { clearTimeout(watchdog); showToast('Mất kết nối mạng'); });
-        window.addEventListener('online', () => {
-            showToast('Đã kết nối lại mạng');
-            updateLogo(getHome());
-            if (!loadedOk) setSrc(currentUrl || getHome(), true);
-        });
-        window.addEventListener('pageshow', e => { if (e.persisted && navigator.onLine && !loadedOk) setSrc(currentUrl || getHome(), true); });
-
-        urlBar.addEventListener('touchstart', e => { touchStarted = true; if (!urlBar.classList.contains('active-mode')) openBar(e); }, { passive: false });
-        urlBar.addEventListener('click', e => { if (touchStarted) return (touchStarted = false); if (!urlBar.classList.contains('active-mode')) openBar(e); });
-        logo.addEventListener('click', e => { if (urlBar.classList.contains('active-mode')) { e.stopPropagation(); loadHome(true); } });
-        backdrop.addEventListener('touchstart', closeBar, { passive: true });
-        backdrop.addEventListener('click', closeBar);
-
-        $('set-btn').onclick = e => {
+        $('set-btn').onclick = (e) => {
             e.stopPropagation();
-            const u = normalize(input.value);
-            localStorage.setItem('custom_main_link', u);
-            preconnect(u); input.value = u; updateLogo(u); loadHome(true);
-        };
-        input.onkeypress = e => { if (e.key === 'Enter') navigate(); };
+            let val = input.value.trim();
+            let fullUrl = val || stripProtocol(getCustomHome());
 
-        const onFsChange = () => {
-            const fs = document.fullscreenElement || document.webkitFullscreenElement;
-            if (fs && screen.orientation?.lock) screen.orientation.lock('landscape').catch(() => {});
-            else if (!fs && screen.orientation?.unlock) screen.orientation.unlock();
-            syncGuard();
-        };
-        ['fullscreenchange', 'webkitfullscreenchange'].forEach(ev => document.addEventListener(ev, onFsChange));
-        ['resize', 'orientationchange'].forEach(ev => window.addEventListener(ev, syncGuard));
-        screen.orientation?.addEventListener?.('change', syncGuard);
+            if (val && !/^https?:\/\//i.test(val) && val.includes('.')) {
+                fullUrl = 'https://' + val;
+            } else if (!/^https?:\/\//i.test(fullUrl)) {
+                fullUrl = 'https://' + fullUrl;
+            }
 
-        const reqWakeLock = async () => {
-            if (!('wakeLock' in navigator)) return;
-            try { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.onrelease = () => (wakeLock = null); } catch {}
+            localStorage.setItem('custom_main_link', fullUrl);
+            loadHome();
         };
 
-        syncGuard(); loadHome(true);
-        document.addEventListener('DOMContentLoaded', reqWakeLock);
-        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') reqWakeLock(); });
-        ['click', 'touchstart', 'mousemove'].forEach(ev => document.addEventListener(ev, () => { if (!wakeLock) reqWakeLock(); }, { passive: true }));
+        input.onkeypress = function(e) {
+            if (e.key === 'Enter') {
+                navigate();
+            }
+        };
+
+        const handleFullscreenOrientation = () => {
+            const isFullscreen = document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement;
+            if (isFullscreen && screen.orientation && screen.orientation.lock) {
+                screen.orientation.lock('landscape').catch(() => {});
+            } else if (!isFullscreen && screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
+        };
+
+        document.addEventListener('fullscreenchange', handleFullscreenOrientation);
+        document.addEventListener('webkitfullscreenchange', handleFullscreenOrientation);
+
+        // Giữ màn hình luôn sáng (Screen Wake Lock API) cải tiến tự động kích hoạt lại khi chuyển tab/quay lại
+        let wakeLock = null;
+        const requestWakeLock = async () => {
+            if ('wakeLock' in navigator) {
+                try {
+                    wakeLock = await navigator.wakeLock.request('screen');
+                    wakeLock.addEventListener('release', () => {
+                        wakeLock = null;
+                    });
+                } catch (err) {
+                    console.log('Wake Lock error:', err);
+                }
+            }
+        };
+
+        document.addEventListener('DOMContentLoaded', requestWakeLock);
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                requestWakeLock();
+            }
+        });
+        
+        // Kích hoạt lại Wake Lock khi người dùng tương tác chạm màn hình
+        ['click', 'touchstart'].forEach(evt => {
+            document.addEventListener(evt, () => {
+                if (!wakeLock) requestWakeLock();
+            }, {passive: true});
+        });
     </script>
 </body>
 </html>
