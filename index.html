@@ -152,7 +152,7 @@
         function addTab(url = getHome()) {
             const id = Date.now() + Math.random();
             const f = document.createElement('iframe');
-            f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture';
+            f.allow = 'autoplay; encrypted-media; fullscreen; picture-in-picture; screen-wake-lock';
             f.allowFullscreen = true;
             f.sandbox = 'allow-scripts allow-same-origin allow-forms';
             f.src = url;
@@ -229,28 +229,62 @@
             const fs = document.fullscreenElement || document.webkitFullscreenElement;
             if (fs) screen.orientation?.lock?.('landscape').catch(() => {});
             else screen.orientation?.unlock?.();
+            keepAwake();
         };
         document.addEventListener('fullscreenchange', onFs);
         document.addEventListener('webkitfullscreenchange', onFs);
 
         // Giữ màn hình luôn sáng (Screen Wake Lock API)
         let wl = null;
+        let wakeLockBusy = false;
+
         const lockScreen = async () => {
-            if ('wakeLock' in navigator && document.visibilityState === 'visible') {
-                if (wl) return;
-                try {
-                    wl = await navigator.wakeLock.request('screen');
-                    wl.addEventListener('release', () => { wl = null; });
-                } catch {}
+            if (!('wakeLock' in navigator)) return;
+            if (document.visibilityState !== 'visible') return;
+            if (wl && !wl.released) return;
+            if (wakeLockBusy) return;
+
+            wakeLockBusy = true;
+            try {
+                wl = await navigator.wakeLock.request('screen');
+                wl.addEventListener('release', () => {
+                    wl = null;
+                    if (document.visibilityState === 'visible') {
+                        setTimeout(lockScreen, 250);
+                    }
+                });
+            } catch {
+                wl = null;
+            } finally {
+                wakeLockBusy = false;
             }
         };
+
+        const keepAwake = () => {
+            if (!wl || wl.released) {
+                wl = null;
+                lockScreen();
+            }
+        };
+
         document.addEventListener('DOMContentLoaded', lockScreen);
         document.addEventListener('visibilitychange', () => {
-            if (document.visibilityState === 'visible') lockScreen();
+            if (document.visibilityState === 'visible') {
+                wl = null;
+                lockScreen();
+            }
         });
-        ['click', 'touchstart'].forEach(ev => {
-            document.addEventListener(ev, () => { if (!wl) lockScreen(); }, { passive: true });
+        window.addEventListener('focus', keepAwake);
+        window.addEventListener('pageshow', keepAwake);
+        ['pointerdown', 'touchstart', 'click'].forEach(ev => {
+            document.addEventListener(ev, keepAwake, { passive: true });
         });
+
+        setInterval(() => {
+            if (document.visibilityState === 'visible') {
+                keepAwake();
+            }
+        }, 15000);
     </script>
 </body>
 </html>
