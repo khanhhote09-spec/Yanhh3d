@@ -131,6 +131,8 @@
 
         const $ = id => document.getElementById(id);
         const DEFAULT_URL = 'https://yanhh3d.now';
+        const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        const isUnsafeScheme = v => /^(javascript|data|vbscript):/i.test(v.trim());
         const getHome = () => localStorage.getItem('custom_main_link') || DEFAULT_URL;
         const getTitle = u => {
             try {
@@ -139,14 +141,19 @@
             } catch { return u.replace(/^https?:\/\//i, '').split('/')[0] || 'Tab mới'; }
         };
 
-        let tabs = [], curId = null;
+        let tabs = [], curId = null, focusTimer = null;
         const curTab = () => tabs.find(t => t.id === curId);
 
         function toggleBar(open) {
+            clearTimeout(focusTimer);
             $('bar').classList.toggle('on', open);
             $('bg').classList.toggle('on', open);
-            if (open) { render(); setTimeout(() => { $('url').focus(); $('url').select(); }, 40); }
-            else $('url').blur();
+            if (open) {
+                render();
+                focusTimer = setTimeout(() => { $('url').focus(); $('url').select(); }, 40);
+            } else {
+                $('url').blur();
+            }
         }
 
         function addTab(url = getHome()) {
@@ -170,6 +177,7 @@
         function closeTab(id, e) {
             e.stopPropagation();
             const idx = tabs.findIndex(t => t.id === id);
+            if (idx === -1) return;
             tabs[idx].f.remove();
             tabs.splice(idx, 1);
             if (!tabs.length) return addTab();
@@ -190,6 +198,7 @@
         function submitQuery() {
             const v = $('url').value.trim();
             if (!v) return go(getHome());
+            if (isUnsafeScheme(v)) return go(`https://www.google.com/search?q=${encodeURIComponent(v)}&igu=1`);
             const isUrl = /^https?:\/\//i.test(v) || (v.includes('.') && !v.includes(' '));
             go(isUrl ? (/^https?:\/\//i.test(v) ? v : 'https://' + v) : `https://www.google.com/search?q=${encodeURIComponent(v)}&igu=1`);
         }
@@ -200,18 +209,25 @@
             $('url').value = t.url;
             $('tabs').innerHTML = tabs.map(x => `
                 <div class="tab ${x.id === curId ? 'on' : ''}" onclick="event.stopPropagation(); switchTab(${x.id})">
-                    <span>${x.title}</span><b onclick="closeTab(${x.id}, event)">&times;</b>
+                    <span>${esc(x.title)}</span><b onclick="closeTab(${x.id}, event)">&times;</b>
                 </div>`).join('') + `<button class="add" onclick="event.stopPropagation(); addTab()">+</button>`;
         }
 
         $('url').onkeypress = e => { if (e.key === 'Enter') submitQuery(); };
         $('find').onclick = e => { e.stopPropagation(); submitQuery(); };
-        $('rel').onclick = e => { e.stopPropagation(); const t = curTab(); if (t) { toggleBar(false); t.f.src = t.url; } };
+        $('rel').onclick = e => {
+            e.stopPropagation();
+            const t = curTab();
+            if (!t) return;
+            toggleBar(false);
+            try { t.f.contentWindow.location.reload(); } catch { t.f.src = t.url; }
+        };
         $('home').onclick = e => { e.stopPropagation(); go(getHome()); };
         $('set').onclick = e => {
             e.stopPropagation();
             let v = $('url').value.trim() || getHome();
-            if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
+            if (isUnsafeScheme(v)) v = DEFAULT_URL;
+            else if (!/^https?:\/\//i.test(v)) v = 'https://' + v;
             localStorage.setItem('custom_main_link', v);
             toggleBar(false);
         };
